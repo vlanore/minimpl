@@ -30,7 +30,7 @@ license and that you accept its terms.*/
 #include "utils.hpp"
 using std::tuple;
 
-namespace minitmp {
+namespace minimpl {
     template <class... Decls>
     struct Map {
         //==========================================================================================
@@ -105,4 +105,4 @@ namespace minitmp {
         template <class Tag>
         using type_of = typename std::tuple_element_t<get_index<Tag>(), value_tuple_t>;
     };
-};  // namespace minitmp
+};  // namespace minimpl

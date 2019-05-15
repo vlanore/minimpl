@@ -26,7 +26,7 @@ license and that you accept its terms.*/
 
 #pragma once
 
-namespace minitmp {
+namespace minimpl {
 
     // represents a pair of types
     template <class Tag, class Type>
@@ -52,4 +52,4 @@ namespace minitmp {
 
     template <class T>
     struct Type {};
-};  // namespace minitmp
+};  // namespace minimpl

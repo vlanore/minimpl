@@ -30,7 +30,7 @@ license and that you accept its terms.*/
 #include <string>
 #include "map.hpp"
 using std::string;
-using namespace minitmp;
+using namespace minimpl;
 
 struct prop1 {};
 struct prop2 {};
