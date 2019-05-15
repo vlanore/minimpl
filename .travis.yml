@@ -1,0 +1,45 @@
+language: cpp
+
+matrix:
+  include:
+  # ~~ osx ~~ =================================================
+  # - os: osx
+  #   compiler: clang
+  #   env:
+  #     - COMPILER=clang++
+  #     - EXTRA_CXX_FLAGS=-stdlib=libc++
+  #   script:
+  #     - make debug && make test
+
+  # ~~ linux gcc ~~ ===========================================
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-5
+    env:
+      - COMPILER=g++-5
+    script:
+      - make coverage && make test
+    after_success:
+      - bash <(curl -s https://codecov.io/bash)
+
+  # ~~ linux clang ~~ =========================================
+  - os: linux
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+          - llvm-toolchain-precise-3.6
+        packages:
+          - clang-3.6
+    env:
+      - COMPILER=clang++-3.6
+    script:
+      - make debug && make test
+
+before_script:
+  - export CXX=$COMPILER
+  - $CXX -v

@@ -1,0 +1,9 @@
+codecov:
+  branch: master
+
+coverage:
+  range: 50..100
+
+ignore:
+  - utils/.*
+  - src/test.cpp
