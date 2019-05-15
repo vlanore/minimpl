@@ -28,7 +28,6 @@ license and that you accept its terms.*/
 
 #include <type_traits>
 #include "doctest.h"
-#include "utils.hpp"
 
 namespace minimpl {
     // type tag for is_box trait
@@ -47,21 +46,21 @@ namespace minimpl {
     template <class T>
     using is_box = std::is_base_of<IsBox, T>;
 
-    // box_t to get box::type without writing "typename box::type"
-    namespace helper {
-        template <class T>
-        auto box_t_impl(std::true_type /* is a box */) {
-            return box<typename T::type>();
-        }
-
-        template <class T>
-        auto box_t_impl(std::false_type /* is not a box */) {
-            return box<NotABox>();
-        }
-    };  // namespace helper
+    // identity on boxes, box<NotABox> on non-boxes
+    template <class T, bool is_box = is_box<T>::value>
+    struct maybe_box : IsBox {
+        using type = NotABox;
+    };
 
     template <class T>
-    using box_t = typename decltype(helper::box_t_impl<T>(is_box<T>()))::type;
+    struct maybe_box<T, true> : IsBox {
+        using type = typename T::type;
+    };
+
+    // box_t to get box::type without writing "typename box::type"
+    template <class T>
+    using box_t = typename maybe_box<T>::type;
+
 };  // namespace minimpl
 
 TEST_CASE("Box tests") {
