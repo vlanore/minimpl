@@ -30,14 +30,14 @@ license and that you accept its terms.*/
 #include <string>
 #include "map.hpp"
 using std::string;
+using namespace minitmp;
 
 struct prop1 {};
 struct prop2 {};
 struct prop3 {};
 
 TEST_CASE("Type map") {
-    using namespace type_map;
-    using my_map = Map<utils::Pair<prop1, int>, utils::Pair<prop2, double>>;
+    using my_map = Map<Pair<prop1, int>, Pair<prop2, double>>;
     using prop1_t = typename my_map::get<prop1>;
     using prop2_t = typename my_map::get<prop2>;
     constexpr int i1 = my_map::get_index<prop1>();
@@ -61,8 +61,7 @@ TEST_CASE("Type map") {
 }
 
 TEST_CASE("type map index to tag") {
-    using namespace type_map;
-    using my_map = Map<utils::Pair<prop1, int>, utils::Pair<prop2, double>>;
+    using my_map = Map<Pair<prop1, int>, Pair<prop2, double>>;
     using tag1 = my_map::get_tag<0>;
     using tag2 = my_map::get_tag<1>;
     CHECK((std::is_same<tag1, prop1>::value));
@@ -70,8 +69,7 @@ TEST_CASE("type map index to tag") {
 }
 
 TEST_CASE("Type map type_of") {
-    using namespace type_map;
-    using my_map = Map<utils::Pair<prop1, int&>, utils::Pair<prop2, double>>;
+    using my_map = Map<Pair<prop1, int&>, Pair<prop2, double>>;
     CHECK((std::is_same<my_map::type_of<prop1>, int&>::value));
     CHECK((std::is_same<my_map::type_of<prop2>, double>::value));
 }

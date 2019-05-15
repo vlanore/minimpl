@@ -30,7 +30,7 @@ license and that you accept its terms.*/
 #include "utils.hpp"
 using std::tuple;
 
-namespace type_map {
+namespace minitmp {
     template <class... Decls>
     struct Map {
         //==========================================================================================
@@ -46,12 +46,12 @@ namespace type_map {
         // helper to recursively look for key in map (base case)
         template <class Key, int index>
         static auto get_helper(tuple<>) {
-            return utils::NotFound();
+            return NotFound();
         }
 
         // helper to recursively look for key in map
         template <class RequestedKey, int index, class Key, class Value, class... DeclRest>
-        static auto get_helper(tuple<utils::Pair<Key, Value>, DeclRest...>) {
+        static auto get_helper(tuple<Pair<Key, Value>, DeclRest...>) {
             using if_equal = GetReturn<Value, index>;
             using if_not_equal =
                 decltype(get_helper<RequestedKey, index + 1>(tuple<DeclRest...>()));
@@ -72,17 +72,17 @@ namespace type_map {
         //==========================================================================================
         // push_front
         template <class Key, class Type>
-        using push_front = decltype(Map<utils::Pair<Key, Type>, Decls...>());
+        using push_front = decltype(Map<Pair<Key, Type>, Decls...>());
 
         //==========================================================================================
         // value_tuple_t (tuple type alias)
 
         // base case of helper below
-        static auto value_tuple_helper(tuple<>) { return utils::TypeList<>(); }
+        static auto value_tuple_helper(tuple<>) { return TypeList<>(); }
 
         // goes through the list of Key/Value pairs and compiles a list of Values
         template <class Key, class Value, class... Rest>
-        static auto value_tuple_helper(tuple<utils::Pair<Key, Value>, Rest...>) {
+        static auto value_tuple_helper(tuple<Pair<Key, Value>, Rest...>) {
             auto recursive_call = value_tuple_helper(tuple<Rest...>());
             return recursive_call.template add_type_front<Value>();
         }
@@ -105,5 +105,4 @@ namespace type_map {
         template <class Tag>
         using type_of = typename std::tuple_element_t<get_index<Tag>(), value_tuple_t>;
     };
-
-};  // namespace type_map
+};  // namespace minitmp
