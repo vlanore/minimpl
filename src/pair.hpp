@@ -31,18 +31,22 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 namespace minimpl {
-    struct IsPair {};
-    struct NotAPair {};
+    // type tags
+    struct IsPair {};    // object is a pair
+    struct NotAPair {};  // expection when passing something that should have been a pair
 
+    // a pair of types
     template <class First, class Second>
     struct pair : IsPair {
         using first = First;
         using second = Second;
     };
 
+    // type trait for "T is a pair"
     template <class T>
     using is_pair = std::is_base_of<IsPair, T>;
 
+    // always returns a pair, identity if T is a pair, pair of exceptions otherwise
     template <class T, bool is_pair = is_pair<T>::value>
     struct maybe_pair : IsBox {
         using type = pair<NotAPair, NotAPair>;
@@ -53,11 +57,13 @@ namespace minimpl {
         using type = T;
     };
 
+    // get first pair element without "typename *::type"
     template <class T>
-    using pair_first = typename maybe_pair<T>::type::first;
+    using pair_first = typename box_t<maybe_pair<T>>::first;
 
+    // get second pair element without "typename *::type"
     template <class T>
-    using pair_second = typename maybe_pair<T>::type::second;
+    using pair_second = typename box_t<maybe_pair<T>>::second;
 
 };  // namespace minimpl
 
@@ -69,6 +75,7 @@ TEST_CASE("Pair test") {
 
     CHECK(std::is_same<pair_first<p>, int>::value);
     CHECK(std::is_same<pair_second<p>, double>::value);
+    CHECK(std::is_same<pair_second<p2>, NotAPair>::value);
     CHECK(is_pair<p>::value);
     CHECK(not is_pair<p2>::value);
 }

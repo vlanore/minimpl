@@ -30,11 +30,9 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 namespace minimpl {
-    // type tag for is_box trait
-    struct IsBox {};
-
-    // type tag to denote applying a box function to something that is not a box
-    struct NotABox {};
+    // type tags
+    struct IsBox {};    // type tag for is_box trait
+    struct NotABox {};  // type tag to denote applying a box function to something that is not a box
 
     // "box" struct used to pass type info around without needing to instantiate objects
     template <class T>
