@@ -49,7 +49,4 @@ namespace minimpl {
             return TypeList<Type, Types...>();
         }
     };
-
-    template <class T>
-    struct Type {};
 };  // namespace minimpl
