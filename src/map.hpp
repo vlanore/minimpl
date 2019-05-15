@@ -31,78 +31,123 @@ license and that you accept its terms.*/
 using std::tuple;
 
 namespace minimpl {
-    template <class... Decls>
-    struct Map {
-        //==========================================================================================
-        // get / get_index
+    // template <class... Decls>
+    // struct Map {
+    //     //==========================================================================================
+    //     // get / get_index
 
-        // return of get_helper
-        template <class Value, int _index>
-        struct GetReturn {
-            using value = Value;
-            static constexpr int index = _index;
-        };
+    //     // return of get_helper
+    //     template <class Value, int _index>
+    //     struct GetReturn {
+    //         using value = Value;
+    //         static constexpr int index = _index;
+    //     };
 
-        // helper to recursively look for key in map (base case)
-        template <class Key, int index>
-        static auto get_helper(tuple<>) {
-            return NotFound();
-        }
+    //     // helper to recursively look for key in map (base case)
+    //     template <class Key, int index>
+    //     static auto get_helper(tuple<>) {
+    //         return NotFound();
+    //     }
 
-        // helper to recursively look for key in map
-        template <class RequestedKey, int index, class Key, class Value, class... DeclRest>
-        static auto get_helper(tuple<Pair<Key, Value>, DeclRest...>) {
-            using if_equal = GetReturn<Value, index>;
-            using if_not_equal =
-                decltype(get_helper<RequestedKey, index + 1>(tuple<DeclRest...>()));
-            constexpr bool equality = std::is_same<RequestedKey, Key>::value;
-            return std::conditional_t<equality, if_equal, if_not_equal>();
-        }  // note that return value is a default-constructed Value object (FIXME?)
+    //     // helper to recursively look for key in map
+    //     template <class RequestedKey, int index, class Key, class Value, class... DeclRest>
+    //     static auto get_helper(tuple<Pair<Key, Value>, DeclRest...>) {
+    //         using if_equal = GetReturn<Value, index>;
+    //         using if_not_equal =
+    //             decltype(get_helper<RequestedKey, index + 1>(tuple<DeclRest...>()));
+    //         constexpr bool equality = std::is_same<RequestedKey, Key>::value;
+    //         return std::conditional_t<equality, if_equal, if_not_equal>();
+    //     }  // note that return value is a default-constructed Value object (FIXME?)
 
-        // type alias for the result of the get function
-        template <class Key>
-        using get = typename decltype(get_helper<Key, 0>(tuple<Decls...>()))::value;
+    //     // type alias for the result of the get function
+    //     template <class Key>
+    //     using get = typename decltype(get_helper<Key, 0>(tuple<Decls...>()))::value;
 
-        // type alias for the result of the get function
-        template <class Key>
-        static constexpr int get_index() {
-            return decltype(get_helper<Key, 0>(tuple<Decls...>()))::index;
-        }
+    //     // type alias for the result of the get function
+    //     template <class Key>
+    //     static constexpr int get_index() {
+    //         return decltype(get_helper<Key, 0>(tuple<Decls...>()))::index;
+    //     }
 
-        //==========================================================================================
-        // push_front
-        template <class Key, class Type>
-        using push_front = decltype(Map<Pair<Key, Type>, Decls...>());
+    //     //==========================================================================================
+    //     // push_front
+    //     template <class Key, class Type>
+    //     using push_front = decltype(Map<Pair<Key, Type>, Decls...>());
 
-        //==========================================================================================
-        // value_tuple_t (tuple type alias)
+    //     //==========================================================================================
+    //     // value_tuple_t (tuple type alias)
 
-        // base case of helper below
-        static auto value_tuple_helper(tuple<>) { return TypeList<>(); }
+    //     // base case of helper below
+    //     static auto value_tuple_helper(tuple<>) { return TypeList<>(); }
 
-        // goes through the list of Key/Value pairs and compiles a list of Values
-        template <class Key, class Value, class... Rest>
-        static auto value_tuple_helper(tuple<Pair<Key, Value>, Rest...>) {
-            auto recursive_call = value_tuple_helper(tuple<Rest...>());
-            return recursive_call.template add_type_front<Value>();
-        }
+    //     // goes through the list of Key/Value pairs and compiles a list of Values
+    //     template <class Key, class Value, class... Rest>
+    //     static auto value_tuple_helper(tuple<Pair<Key, Value>, Rest...>) {
+    //         auto recursive_call = value_tuple_helper(tuple<Rest...>());
+    //         return recursive_call.template add_type_front<Value>();
+    //     }
 
-        // type alias that corresponds to a tuple of all the values
-        // (to be used in tagged tuple, at least)
-        using value_tuple_t = typename decltype(value_tuple_helper(tuple<Decls...>()))::tuple;
+    //     // type alias that corresponds to a tuple of all the values
+    //     // (to be used in tagged tuple, at least)
+    //     using value_tuple_t = typename decltype(value_tuple_helper(tuple<Decls...>()))::tuple;
 
-        //==========================================================================================
-        // other info on map (index to tag, size, type of field)
+    //     //==========================================================================================
+    //     // other info on map (index to tag, size, type of field)
 
-        // returns tag associated with index
-        template <int index>
-        using get_tag = typename std::tuple_element_t<index, tuple<Decls...>>::tag;
+    //     // returns tag associated with index
+    //     template <int index>
+    //     using get_tag = typename std::tuple_element_t<index, tuple<Decls...>>::tag;
 
-        // number of entries in map (static int)
-        static constexpr size_t size() { return sizeof...(Decls); }
+    //     // number of entries in map (static int)
+    //     static constexpr size_t size() { return sizeof...(Decls); }
 
-        // alias to type of field associated to specified tag
-        template <class Tag>
-        using type_of = typename std::tuple_element_t<get_index<Tag>(), value_tuple_t>;
-    };
+    //     // alias to type of field associated to specified tag
+    //     template <class Tag>
+    //     using type_of = typename std::tuple_element_t<get_index<Tag>(), value_tuple_t>;
+    // };
 };  // namespace minimpl
+
+// using std::string;
+// using namespace minimpl;
+
+// struct prop1 {};
+// struct prop2 {};
+// struct prop3 {};
+
+// TEST_CASE("Type map") {
+//     using my_map = Map<Pair<prop1, int>, Pair<prop2, double>>;
+//     using prop1_t = typename my_map::get<prop1>;
+//     using prop2_t = typename my_map::get<prop2>;
+//     constexpr int i1 = my_map::get_index<prop1>();
+//     constexpr int i2 = my_map::get_index<prop2>();
+
+//     CHECK(my_map::size() == 2);
+//     CHECK((std::is_same<prop1_t, int>::value));
+//     CHECK((std::is_same<prop2_t, double>::value));
+//     CHECK(i1 == 0);
+//     CHECK(i2 == 1);
+
+//     using tuple_t = my_map::value_tuple_t;
+//     CHECK((std::is_same<tuple<int, double>, tuple_t>::value));
+
+//     using my_map2 = my_map::push_front<prop3, string>;
+//     using prop3_t = typename my_map2::get<prop3>;
+//     CHECK((std::is_same<prop3_t, string>::value));
+//     CHECK(my_map2::get_index<prop3>() == 0);  // added in front
+//     CHECK(my_map2::get_index<prop1>() == 1);
+//     CHECK(my_map2::get_index<prop2>() == 2);
+// }
+
+// TEST_CASE("type map index to tag") {
+//     using my_map = Map<Pair<prop1, int>, Pair<prop2, double>>;
+//     using tag1 = my_map::get_tag<0>;
+//     using tag2 = my_map::get_tag<1>;
+//     CHECK((std::is_same<tag1, prop1>::value));
+//     CHECK((std::is_same<tag2, prop2>::value));
+// }
+
+// TEST_CASE("Type map type_of") {
+//     using my_map = Map<Pair<prop1, int&>, Pair<prop2, double>>;
+//     CHECK((std::is_same<my_map::type_of<prop1>, int&>::value));
+//     CHECK((std::is_same<my_map::type_of<prop2>, double>::value));
+// }

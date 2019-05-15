@@ -35,9 +35,6 @@ namespace minimpl {
         using type = Type;
     };
 
-    // to be used as return value when key not found in map
-    struct NotFound {};
-
     template <class... Types>
     // to carry around a list of types without the
     // default-initialization problems of std::tuple
