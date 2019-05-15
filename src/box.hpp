@@ -49,17 +49,17 @@ namespace minimpl {
     // identity on boxes, box<NotABox> on non-boxes
     template <class T, bool is_box = is_box<T>::value>
     struct maybe_box : IsBox {
-        using type = NotABox;
+        using type = box<NotABox>;
     };
 
     template <class T>
     struct maybe_box<T, true> : IsBox {
-        using type = typename T::type;
+        using type = T;
     };
 
     // box_t to get box::type without writing "typename box::type"
     template <class T>
-    using box_t = typename maybe_box<T>::type;
+    using box_t = typename maybe_box<T>::type::type;
 
 };  // namespace minimpl
 
