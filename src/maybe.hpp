@@ -32,33 +32,26 @@ license and that you accept its terms.*/
 namespace minimpl {
 
     // type tags
-    struct Error {};  // tag for error types
     template <class T>
-    struct NotA : Error {};  // error : wrong type
-    struct NoError {};       // to used in place of error when no error
-    struct Invalid {};       // to build default values
+    struct NotA {};     // error : wrong type
+    struct NoError {};  // to used in place of error when no error
+    struct Invalid {};  // to build default values
 
     // type traits
     template <class Tag, class T>
     using has_tag = std::is_base_of<Tag, T>;
 
-    template <class T>
-    using is_error = has_tag<Error, T>;
-
     // maybe class : represents either a value or an error
-    template <class Tag, class DefaultValue>
-    struct maybe_builder {
-        template <class T, bool has_tag = has_tag<Tag, T>::value>
-        struct make {
-            using error = NotA<Tag>;
-            using value = DefaultValue;
-        };
+    template <class Tag, class DefaultValue, class T, bool = has_tag<Tag, T>::value>
+    struct maybe {
+        using error = NotA<Tag>;
+        using value = DefaultValue;
+    };
 
-        template <class T>
-        struct make<T, true> {
-            using error = NoError;
-            using value = T;
-        };
+    template <class Tag, class DefaultValue, class T>
+    struct maybe<Tag, DefaultValue, T, true> {
+        using error = NoError;
+        using value = T;
     };
 
     // maybe class operations
@@ -77,7 +70,6 @@ namespace minimpl {
     template <template <class...> class F, class MX, class... Args>
     using apply = std::conditional_t<is_valid<MX>::value,
                                      typename F<get_value<MX>, Args...>::result, get_error<MX>>;
-
 };  // namespace minimpl
 
 //==================================================================================================
@@ -97,17 +89,14 @@ namespace testing {
         using result = my_type<T>;
         using return_type = MyType;
     };
-
-    template <class T>
-    using maybe_mytype = maybe_builder<MyType, my_type<Invalid>>::make<T>;
 };  // namespace testing
 
 TEST_CASE("Maybe test") {
     using namespace minimpl;
     using namespace testing;
 
-    using t1 = maybe_mytype<double>;
-    using t2 = maybe_mytype<my_type<double>>;
+    using t1 = maybe<MyType, my_type<Invalid>, double>;
+    using t2 = maybe<MyType, my_type<Invalid>, my_type<double>>;
     CHECK(not is_valid<t1>::value);
     CHECK(is_valid<t2>::value);
     CHECK(std::is_same<apply<f, t1>, NotA<MyType>>::value);
