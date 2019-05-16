@@ -32,51 +32,45 @@ license and that you accept its terms.*/
 
 namespace minimpl {
     // type tags
-    struct IsList {};       // is a list
+    struct List {};         // is a list
     struct NotAList {};     // passed a param that should have been a list but was not
     struct OutOfBounds {};  // requested index is out of bounds
     struct NotFound {};     // could not find element
 
     template <class... Elements>
-    struct list : IsList {
+    struct list : List {
         using boxes = std::tuple<box<Elements>...>;
         static constexpr size_t size = sizeof...(Elements);
+    };
+
+    template <>
+    struct default_value<List> {
+        using type = list<>;
     };
 
     template <class... Elements>
     constexpr size_t list<Elements...>::size;
 
     template <class T>
-    using is_list = std::is_base_of<IsList, T>;
+    using is_list = has_tag<List, T>;
 
-    template <class T, bool = is_list<T>::value>
-    struct maybe_list : Box {
-        using type = list<NotAList>;
+    using maybe_list = maybe<List>;
+
+    template <class L, size_t index, bool within_bounds = (index < L::size)>
+    struct get_element : Function<RawType> {
+        using result = OutOfBounds;
     };
 
-    template <class T>
-    struct maybe_list<T, true> : Box {
-        using type = T;
-    };
-
-    template <class T, size_t index, bool within_bounds = (index < box_t<maybe_list<T>>::size),
-              bool is_list = is_list<T>::value>
-    struct maybe_element : Box {
-        using type = NotAList;
+    template <class L, size_t index>
+    struct get_element<L, index, true> : Function<RawType> {
+        using result = unbox<std::tuple_element_t<index, typename L::boxes>>;
     };
 
     template <class T, size_t index>
-    struct maybe_element<T, index, false, true> : Box {
-        using type = OutOfBounds;
-    };
-
-    template <class T, size_t index>
-    struct maybe_element<T, index, true, true> : Box {
-        using type = box_t<std::tuple_element_t<index, typename T::boxes>>;
-    };
-
-    template <class T, size_t index>
-    using element_t = box_t<maybe_element<T, index>>;
+    using element_t =
+        std::conditional_t<is_valid<maybe_list::make<T>>::value,
+                           typename get_element<get_value<maybe_list::make<T>>, index>::result,
+                           get_error<maybe_list::make<T>>>;
 
 };  // namespace minimpl
 
@@ -89,5 +83,5 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<element_t<l, 1>, double>::value);
     CHECK(std::is_same<element_t<l, 2>, char>::value);
     CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
-    CHECK(std::is_same<element_t<l2, 1>, NotAList>::value);
+    CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
 }

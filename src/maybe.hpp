@@ -38,16 +38,32 @@ namespace minimpl {
     struct NoError {};       // to used in place of error when no error
     struct Invalid {};       // to build default values
     struct Monad {};         // to mark monads
+    template <class Return>
+    struct Function {  // tag for metafunctions
+        using return_type = Return;
+    };
+    template <class Tag>
+    struct default_value {
+        using type = Invalid;
+    };
+    struct RawType {};
+    template <>
+    struct default_value<RawType> {
+        using type = Invalid;
+    };
 
     // type traits
     template <class Tag, class T>
-    using has_tag = std::is_base_of<Tag, T>;
+    struct has_tag : std::is_base_of<Tag, T> {};
+
+    template <class T>
+    struct has_tag<RawType, T> : std::true_type {};
 
     template <class T>
     using is_error = has_tag<Error, T>;
 
     // maybe class : represents either a value or an error
-    template <class Tag, class DefaultValue>
+    template <class Tag, class DefaultValue = typename default_value<Tag>::type>
     struct maybe {
         template <class E>
         struct make_error : Monad {
@@ -55,14 +71,21 @@ namespace minimpl {
             using value = DefaultValue;
         };
 
-        template <class T, bool has_tag = has_tag<Tag, T>::value>
+        template <class T, bool has_tag = has_tag<Tag, T>::value,
+                  bool is_error = is_error<T>::value>
         struct make : Monad {
             using error = NotA<Tag>;
             using value = DefaultValue;
         };
 
+        template <class T, bool has_tag>
+        struct make<T, has_tag, true> : Monad {
+            using error = T;
+            using value = DefaultValue;
+        };
+
         template <class T>
-        struct make<T, true> : Monad {
+        struct make<T, true, false> : Monad {
             using error = NoError;
             using value = T;
         };
@@ -72,9 +95,25 @@ namespace minimpl {
     template <class MX>
     using is_valid = std::is_same<NoError, typename MX::error>;
 
+    template <class MX>
+    using get_value = typename MX::value;
+
+    template <class MX>
+    using get_error = typename MX::error;
+
+    template <class MX>
+    using get = std::conditional_t<is_valid<MX>::value, get_value<MX>, get_error<MX>>;
+
+    template <class X, template <class> class F>
+    using apply = typename F<X>::result;
+
+    template <class X, template <class> class F>
+    using return_type = typename F<X>::return_type;
+
     template <class MX, template <class> class F>
-    using bind = std::conditional_t<is_valid<MX>::value, typename F<typename MX::value>::result,
-                                    typename MX::error>;
+    using bind = std::conditional_t<
+        is_valid<MX>::value,
+        typename maybe<return_type<get_value<MX>, F>>::template make<apply<get_value<MX>, F>>, MX>;
 
 };  // namespace minimpl
 
@@ -91,6 +130,7 @@ namespace testing {
     template <class T>
     struct f {
         using result = MyType<T>;
+        using return_type = Tag;
     };
 };  // namespace testing
 
@@ -103,6 +143,7 @@ TEST_CASE("Maybe test") {
     using t2 = maybe_mytype::make<MyType<double>>;
     CHECK(not is_valid<t1>::value);
     CHECK(is_valid<t2>::value);
-    CHECK(std::is_same<bind<t1, f>, NotA<Tag>>::value);
-    CHECK(std::is_same<bind<t2, f>, MyType<MyType<double>>>::value);
+    CHECK(std::is_same<get<bind<t1, f>>, NotA<Tag>>::value);
+    CHECK(std::is_same<get<bind<t2, f>>, MyType<MyType<double>>>::value);
+    CHECK(std::is_same<get<bind<bind<t2, f>, f>>, MyType<MyType<MyType<double>>>>::value);
 }

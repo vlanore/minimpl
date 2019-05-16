@@ -39,20 +39,26 @@ namespace minimpl {
         using type = T;
     };
 
+    // default value
+    template <>
+    struct default_value<Box> {
+        using type = box<Invalid>;
+    };
+
     // is_box type trait
     template <class T>
     using is_box = has_tag<Box, T>;
 
-    using maybe_box = maybe<Box, box<Invalid>>;
+    using maybe_box = maybe<Box>;
 
     template <class T>
-    struct unpack_f {
+    struct unbox_f : Function<RawType> {
         using result = typename T::type;
     };
 
     // box_t to get box::type without writing "typename box::type"
     template <class T>
-    using box_t = bind<maybe_box::make<T>, unpack_f>;
+    using unbox = get<bind<maybe_box::make<T>, unbox_f>>;
 
 };  // namespace minimpl
 
@@ -63,8 +69,8 @@ TEST_CASE("Box tests") {
 
     using t = box<double>;
     struct t2 {};  // NOT a box
-    CHECK(std::is_same<box_t<t>, double>::value);
-    CHECK(std::is_same<box_t<t2>, NotA<Box>>::value);
+    CHECK(std::is_same<unbox<t>, double>::value);
+    CHECK(std::is_same<unbox<t2>, NotA<Box>>::value);
     CHECK(is_box<t>::value);
     CHECK(not is_box<t2>::value);
 }
