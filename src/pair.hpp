@@ -31,38 +31,38 @@ license and that you accept its terms.*/
 
 namespace minimpl {
     // type tags
-    struct IsPair {};    // object is a pair
-    struct NotAPair {};  // expection when passing something that should have been a pair
+    struct Pair {};  // object is a pair
 
     // a pair of types
     template <class First, class Second>
-    struct pair : IsPair {
+    struct pair : Pair {
         using first = First;
         using second = Second;
     };
 
     // type trait for "T is a pair"
     template <class T>
-    using is_pair = std::is_base_of<IsPair, T>;
+    using is_pair = std::is_base_of<Pair, T>;
 
-    // always returns a pair, identity if T is a pair, pair of exceptions otherwise
-    template <class T, bool is_pair = is_pair<T>::value>
-    struct maybe_pair : Box {
-        using type = pair<NotAPair, NotAPair>;
+    using maybe_pair = maybe<Pair, pair<Invalid, Invalid>>;
+
+    template <class T>
+    struct first_f {
+        using result = typename T::first;
     };
 
     template <class T>
-    struct maybe_pair<T, true> : Box {
-        using type = T;
+    struct second_f {
+        using result = typename T::second;
     };
 
     // get first pair element without "typename *::type"
     template <class T>
-    using pair_first = typename box_t<maybe_pair<T>>::first;
+    using pair_first = bind<maybe_pair::make<T>, first_f>;
 
     // get second pair element without "typename *::type"
     template <class T>
-    using pair_second = typename box_t<maybe_pair<T>>::second;
+    using pair_second = bind<maybe_pair::make<T>, second_f>;
 
 };  // namespace minimpl
 
@@ -74,7 +74,7 @@ TEST_CASE("Pair test") {
 
     CHECK(std::is_same<pair_first<p>, int>::value);
     CHECK(std::is_same<pair_second<p>, double>::value);
-    CHECK(std::is_same<pair_second<p2>, NotAPair>::value);
+    CHECK(std::is_same<pair_second<p2>, NotA<Pair>>::value);
     CHECK(is_pair<p>::value);
     CHECK(not is_pair<p2>::value);
 }
