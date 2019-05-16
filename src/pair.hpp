@@ -40,34 +40,30 @@ namespace minimpl {
         using second = Second;
     };
 
-    template <>
-    struct default_value<Pair> {
-        using type = pair<Invalid, Invalid>;
-    };
-
     // type trait for "T is a pair"
     template <class T>
     using is_pair = std::is_base_of<Pair, T>;
 
-    using maybe_pair = maybe<Pair>;
+    template <class T>
+    using maybe_pair = maybe<Pair, pair<Invalid, Invalid>, T>;
 
     template <class T>
-    struct first_f : Function<RawType> {
+    struct first_f {
         using result = typename T::first;
     };
 
     template <class T>
-    struct second_f : Function<RawType> {
+    struct second_f {
         using result = typename T::second;
     };
 
     // get first pair element without "typename *::type"
     template <class T>
-    using pair_first = get<bind<maybe_pair::make<T>, first_f>>;
+    using pair_first = apply<first_f, maybe_pair<T>>;
 
     // get second pair element without "typename *::type"
     template <class T>
-    using pair_second = get<bind<maybe_pair::make<T>, second_f>>;
+    using pair_second = apply<second_f, maybe_pair<T>>;
 
 };  // namespace minimpl
 

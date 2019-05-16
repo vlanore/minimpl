@@ -35,17 +35,16 @@ namespace minimpl {
     struct List {};         // is a list
     struct NotAList {};     // passed a param that should have been a list but was not
     struct OutOfBounds {};  // requested index is out of bounds
-    struct NotFound {};     // could not find element
+    // struct NotFound {};     // could not find element
+    template <size_t s>
+    struct Size {
+        static constexpr size_t get() { return s; }
+    };
 
     template <class... Elements>
     struct list : List {
         using boxes = std::tuple<box<Elements>...>;
         static constexpr size_t size = sizeof...(Elements);
-    };
-
-    template <>
-    struct default_value<List> {
-        using type = list<>;
     };
 
     template <class... Elements>
@@ -54,23 +53,24 @@ namespace minimpl {
     template <class T>
     using is_list = has_tag<List, T>;
 
-    using maybe_list = maybe<List>;
+    template <class T>
+    using maybe_list = maybe<List, list<>, T>;
 
-    template <class L, size_t index, bool within_bounds = (index < L::size)>
-    struct get_element : Function<RawType> {
+    template <class L, class Index, bool within_bounds = (Index::get() < L::size)>
+    struct get_element_helper {
         using result = OutOfBounds;
     };
 
-    template <class L, size_t index>
-    struct get_element<L, index, true> : Function<RawType> {
-        using result = unbox<std::tuple_element_t<index, typename L::boxes>>;
+    template <class L, class Index>
+    struct get_element_helper<L, Index, true> {
+        using result = unbox<std::tuple_element_t<Index::get(), typename L::boxes>>;
     };
 
+    template <class L, class Index>
+    using get_element = get_element_helper<L, Index>;
+
     template <class T, size_t index>
-    using element_t =
-        std::conditional_t<is_valid<maybe_list::make<T>>::value,
-                           typename get_element<get_value<maybe_list::make<T>>, index>::result,
-                           get_error<maybe_list::make<T>>>;
+    using element_t = apply<get_element, maybe_list<T>, Size<index>>;
 
 };  // namespace minimpl
 

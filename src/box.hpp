@@ -39,26 +39,21 @@ namespace minimpl {
         using type = T;
     };
 
-    // default value
-    template <>
-    struct default_value<Box> {
-        using type = box<Invalid>;
-    };
-
     // is_box type trait
     template <class T>
     using is_box = has_tag<Box, T>;
 
-    using maybe_box = maybe<Box>;
+    template <class T>
+    using maybe_box = maybe<Box, box<Invalid>, T>;
 
     template <class T>
-    struct unbox_f : Function<RawType> {
+    struct unbox_f {
         using result = typename T::type;
     };
 
     // box_t to get box::type without writing "typename box::type"
     template <class T>
-    using unbox = get<bind<maybe_box::make<T>, unbox_f>>;
+    using unbox = apply<unbox_f, maybe_box<T>>;
 
 };  // namespace minimpl
 
