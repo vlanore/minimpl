@@ -26,48 +26,45 @@ license and that you accept its terms.*/
 
 #pragma once
 
-#include <type_traits>
 #include "doctest.h"
+#include "maybe.hpp"
 
 namespace minimpl {
     // type tags
-    struct IsBox {};    // type tag for is_box trait
-    struct NotABox {};  // type tag to denote applying a box function to something that is not a box
+    struct Box {};  // type tag for is_box trait
 
     // "box" struct used to pass type info around without needing to instantiate objects
     template <class T>
-    struct box : IsBox {
+    struct box : Box {
         using type = T;
     };
 
     // is_box type trait
     template <class T>
-    using is_box = std::is_base_of<IsBox, T>;
+    using is_box = has_tag<Box, T>;
 
-    // identity on boxes, box<NotABox> on non-boxes
-    template <class T, bool is_box = is_box<T>::value>
-    struct maybe_box : IsBox {
-        using type = box<NotABox>;
-    };
+    using maybe_box = maybe<Box, box<Invalid>>;
 
     template <class T>
-    struct maybe_box<T, true> : IsBox {
-        using type = T;
+    struct unpack_f {
+        using result = typename T::type;
     };
 
     // box_t to get box::type without writing "typename box::type"
     template <class T>
-    using box_t = typename maybe_box<T>::type::type;
+    using box_t = bind<maybe_box::make<T>, unpack_f>;
 
 };  // namespace minimpl
 
+//==================================================================================================
+// TESTS
 TEST_CASE("Box tests") {
     using namespace minimpl;
 
     using t = box<double>;
     struct t2 {};  // NOT a box
     CHECK(std::is_same<box_t<t>, double>::value);
-    CHECK(std::is_same<box_t<t2>, NotABox>::value);
+    CHECK(std::is_same<box_t<t2>, NotA<Box>>::value);
     CHECK(is_box<t>::value);
     CHECK(not is_box<t2>::value);
 }

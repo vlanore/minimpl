@@ -26,7 +26,6 @@ license and that you accept its terms.*/
 
 #pragma once
 
-#include <type_traits>
 #include "box.hpp"
 #include "doctest.h"
 
@@ -48,12 +47,12 @@ namespace minimpl {
 
     // always returns a pair, identity if T is a pair, pair of exceptions otherwise
     template <class T, bool is_pair = is_pair<T>::value>
-    struct maybe_pair : IsBox {
+    struct maybe_pair : Box {
         using type = pair<NotAPair, NotAPair>;
     };
 
     template <class T>
-    struct maybe_pair<T, true> : IsBox {
+    struct maybe_pair<T, true> : Box {
         using type = T;
     };
 

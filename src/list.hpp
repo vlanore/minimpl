@@ -26,9 +26,7 @@ license and that you accept its terms.*/
 
 #pragma once
 
-#include <limits>
 #include <tuple>
-#include <type_traits>
 #include "box.hpp"
 #include "doctest.h"
 
@@ -52,34 +50,34 @@ namespace minimpl {
     using is_list = std::is_base_of<IsList, T>;
 
     template <class T, bool = is_list<T>::value>
-    struct maybe_list : IsBox {
+    struct maybe_list : Box {
         using type = list<NotAList>;
     };
 
     template <class T>
-    struct maybe_list<T, true> : IsBox {
+    struct maybe_list<T, true> : Box {
         using type = T;
     };
 
     template <class T, size_t index, bool within_bounds = (index < box_t<maybe_list<T>>::size),
               bool is_list = is_list<T>::value>
-    struct maybe_element : IsBox {
+    struct maybe_element : Box {
         using type = NotAList;
     };
 
     template <class T, size_t index>
-    struct maybe_element<T, index, false, true> : IsBox {
+    struct maybe_element<T, index, false, true> : Box {
         using type = OutOfBounds;
     };
 
     template <class T, size_t index>
-    struct maybe_element<T, index, true, true> : IsBox {
+    struct maybe_element<T, index, true, true> : Box {
         using type = box_t<std::tuple_element_t<index, typename T::boxes>>;
     };
 
     template <class T, size_t index>
     using element_t = box_t<maybe_element<T, index>>;
-    
+
 };  // namespace minimpl
 
 TEST_CASE("List tests") {
