@@ -37,55 +37,25 @@ namespace minimpl {
     struct NotA : Error {};  // error : wrong type
     struct NoError {};       // to used in place of error when no error
     struct Invalid {};       // to build default values
-    struct Monad {};         // to mark monads
-    template <class Return>
-    struct Function {  // tag for metafunctions
-        using return_type = Return;
-    };
-    template <class Tag>
-    struct default_value {
-        using type = Invalid;
-    };
-    struct RawType {};
-    template <>
-    struct default_value<RawType> {
-        using type = Invalid;
-    };
 
     // type traits
     template <class Tag, class T>
-    struct has_tag : std::is_base_of<Tag, T> {};
-
-    template <class T>
-    struct has_tag<RawType, T> : std::true_type {};
+    using has_tag = std::is_base_of<Tag, T>;
 
     template <class T>
     using is_error = has_tag<Error, T>;
 
     // maybe class : represents either a value or an error
-    template <class Tag, class DefaultValue = typename default_value<Tag>::type>
-    struct maybe {
-        template <class E>
-        struct make_error : Monad {
-            using error = E;
-            using value = DefaultValue;
-        };
-
-        template <class T, bool has_tag = has_tag<Tag, T>::value,
-                  bool is_error = is_error<T>::value>
-        struct make : Monad {
+    template <class Tag, class DefaultValue>
+    struct maybe_builder {
+        template <class T, bool has_tag = has_tag<Tag, T>::value>
+        struct make {
             using error = NotA<Tag>;
             using value = DefaultValue;
         };
 
-        template <class T, bool has_tag>
-        struct make<T, has_tag, true> : Monad {
-            using error = T;
-            using value = DefaultValue;
-        };
-
         template <class T>
-        struct make<T, true, false> : Monad {
+        struct make<T, true> {
             using error = NoError;
             using value = T;
         };
@@ -104,46 +74,42 @@ namespace minimpl {
     template <class MX>
     using get = std::conditional_t<is_valid<MX>::value, get_value<MX>, get_error<MX>>;
 
-    template <class X, template <class> class F>
-    using apply = typename F<X>::result;
-
-    template <class X, template <class> class F>
-    using return_type = typename F<X>::return_type;
-
-    template <class MX, template <class> class F>
-    using bind = std::conditional_t<
-        is_valid<MX>::value,
-        typename maybe<return_type<get_value<MX>, F>>::template make<apply<get_value<MX>, F>>, MX>;
+    template <template <class...> class F, class MX, class... Args>
+    using apply = std::conditional_t<is_valid<MX>::value,
+                                     typename F<get_value<MX>, Args...>::result, get_error<MX>>;
 
 };  // namespace minimpl
 
 //==================================================================================================
 // TESTS
 namespace testing {
-    struct Tag {};
+    using namespace minimpl;
+
+    struct MyType {};
 
     template <class T>
-    struct MyType : Tag {
+    struct my_type : MyType {
         using type = T;
     };
 
     template <class T>
     struct f {
-        using result = MyType<T>;
-        using return_type = Tag;
+        using result = my_type<T>;
+        using return_type = MyType;
     };
+
+    template <class T>
+    using maybe_mytype = maybe_builder<MyType, my_type<Invalid>>::make<T>;
 };  // namespace testing
 
 TEST_CASE("Maybe test") {
     using namespace minimpl;
     using namespace testing;
-    using maybe_mytype = maybe<Tag, MyType<Invalid>>;
 
-    using t1 = maybe_mytype::make<double>;
-    using t2 = maybe_mytype::make<MyType<double>>;
+    using t1 = maybe_mytype<double>;
+    using t2 = maybe_mytype<my_type<double>>;
     CHECK(not is_valid<t1>::value);
     CHECK(is_valid<t2>::value);
-    CHECK(std::is_same<get<bind<t1, f>>, NotA<Tag>>::value);
-    CHECK(std::is_same<get<bind<t2, f>>, MyType<MyType<double>>>::value);
-    CHECK(std::is_same<get<bind<bind<t2, f>, f>>, MyType<MyType<MyType<double>>>>::value);
+    CHECK(std::is_same<apply<f, t1>, NotA<MyType>>::value);
+    CHECK(std::is_same<apply<f, t2>, my_type<my_type<double>>>::value);
 }
