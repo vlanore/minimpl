@@ -82,6 +82,21 @@ namespace minimpl {
     template <class L, class ToFind>
     constexpr size_t find_element<L, ToFind>::value;
 
+    template <class L, class ToAdd>
+    struct list_push_front : Box {
+        static_assert(is_list<L>::value, "parameter L is not a list");
+
+        template <class... Elements>
+        static auto helper(list<Elements...>) {
+            return list<ToAdd, Elements...>();
+        }
+
+        using type = decltype(helper(L()));
+    };
+
+    template <class L, class ToAdd>
+    using list_push_front_t = unbox_t<list_push_front<L, ToAdd>>;
+
     template <class L, template <class> class F, class Combinator>
     struct map_and_fold_list {
         static_assert(is_list<L>::value, "L is not a list");
@@ -117,14 +132,16 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<list_element_t<l, 0>, int>::value);
     CHECK(std::is_same<list_element_t<l, 1>, double>::value);
     CHECK(std::is_same<list_element_t<l, 2>, char>::value);
-    // CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
-    // CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
+
     CHECK(find_element<l, int>::value == 0);
     CHECK(find_element<l, double>::value == 1);
     CHECK(find_element<l, char>::value == 2);
-    // CHECK(find_element<l, long>::value == 3);
-    // CHECK(find_element<l2, long>::value == 3);
+
     using l3 = list<int, list<>, double>;
     CHECK(map_and_fold_list<l3, is_list, std::logical_or<bool>>::value == true);
     CHECK(map_and_fold_list<l, is_list, std::logical_or<bool>>::value == false);
+
+    using l4 = list_push_front_t<l, long>;
+    CHECK(find_element<l4, long>::value == 0);
+    CHECK(find_element<l4, int>::value == 1);
 }
