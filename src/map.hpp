@@ -36,7 +36,8 @@ namespace minimpl {
 
     template <class... Pairs>
     struct map : Map, list<Pairs...> {
-        // TODO : check that all are pairs
+        static_assert(map_and_fold_list<list<Pairs...>, is_pair, std::logical_and<bool>>::value,
+                      "template arguments contain non-pairs");
     };
 
     template <class T>
@@ -81,6 +82,8 @@ TEST_CASE("map tests") {
     using namespace minimpl;
     using m = map<pair<key1, int>, pair<key2, double>, pair<key3, char>>;
     struct m2 {};
+    // using m3 = map<double, int>; // fails (as expected)
+    // CHECK(m3::size == 2);
     CHECK(m::size == 3);
     CHECK(is_map<m>::value);
     CHECK(not is_map<m2>::value);

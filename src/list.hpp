@@ -125,6 +125,6 @@ TEST_CASE("List tests") {
     // CHECK(find_element<l, long>::value == 3);
     // CHECK(find_element<l2, long>::value == 3);
     using l3 = list<int, list<>, double>;
-    CHECK(map_and_fold_list<l3, is_list, std::plus<bool>>::value == true);
-    CHECK(map_and_fold_list<l, is_list, std::plus<bool>>::value == false);
+    CHECK(map_and_fold_list<l3, is_list, std::logical_or<bool>>::value == true);
+    CHECK(map_and_fold_list<l, is_list, std::logical_or<bool>>::value == false);
 }
