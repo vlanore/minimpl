@@ -49,12 +49,12 @@ namespace minimpl {
 
     template <class T>
     struct first_f {
-        using result = typename T::first;
+        using type = typename T::first;
     };
 
     template <class T>
     struct second_f {
-        using result = typename T::second;
+        using type = typename T::second;
     };
 
     // get first pair element without "typename *::type"

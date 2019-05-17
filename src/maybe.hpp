@@ -45,13 +45,13 @@ namespace minimpl {
     template <class Tag, class DefaultValue, class T, bool = has_tag<Tag, T>::value>
     struct maybe {
         using error = NotA<Tag>;
-        using value = DefaultValue;
+        using type = DefaultValue;
     };
 
     template <class Tag, class DefaultValue, class T>
     struct maybe<Tag, DefaultValue, T, true> {
         using error = NoError;
-        using value = T;
+        using type = T;
     };
 
     // maybe class operations
@@ -59,17 +59,17 @@ namespace minimpl {
     using is_valid = std::is_same<NoError, typename MX::error>;
 
     template <class MX>
-    using get_value = typename MX::value;
+    using get_type = typename MX::type;
 
     template <class MX>
     using get_error = typename MX::error;
 
     template <class MX>
-    using get = std::conditional_t<is_valid<MX>::value, get_value<MX>, get_error<MX>>;
+    using get = std::conditional_t<is_valid<MX>::value, get_type<MX>, get_error<MX>>;
 
     template <template <class...> class F, class MX, class... Args>
-    using apply = std::conditional_t<is_valid<MX>::value,
-                                     typename F<get_value<MX>, Args...>::result, get_error<MX>>;
+    using apply = std::conditional_t<is_valid<MX>::value, typename F<get_type<MX>, Args...>::type,
+                                     get_error<MX>>;
 };  // namespace minimpl
 
 //==================================================================================================
@@ -86,8 +86,7 @@ namespace testing {
 
     template <class T>
     struct f {
-        using result = my_type<T>;
-        using return_type = MyType;
+        using type = my_type<T>;
     };
 };  // namespace testing
 

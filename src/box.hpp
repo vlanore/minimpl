@@ -48,7 +48,7 @@ namespace minimpl {
 
     template <class T>
     struct unbox_f {
-        using result = typename T::type;
+        using type = typename T::type;
     };
 
     // box_t to get box::type without writing "typename box::type"

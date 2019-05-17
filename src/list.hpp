@@ -38,7 +38,7 @@ namespace minimpl {
     struct NotFound {};     // could not find element
 
     template <size_t s>
-    struct Size {
+    struct Index {
         static constexpr size_t get() { return s; }
     };
 
@@ -59,19 +59,19 @@ namespace minimpl {
 
     template <class L, class Index, bool within_bounds = (Index::get() < L::size)>
     struct get_element_helper {
-        using result = OutOfBounds;
+        using type = OutOfBounds;
     };
 
     template <class L, class Index>
     struct get_element_helper<L, Index, true> {
-        using result = unbox<std::tuple_element_t<Index::get(), typename L::boxes>>;
+        using type = unbox<std::tuple_element_t<Index::get(), typename L::boxes>>;
     };
 
     template <class L, class Index>
     using get_element = get_element_helper<L, Index>;
 
     template <class T, size_t index>
-    using element_t = apply<get_element, maybe_list<T>, Size<index>>;
+    using element_t = apply<get_element, maybe_list<T>, Index<index>>;
 
     template <class L, class ToFind>
     struct find_element {
@@ -82,7 +82,7 @@ namespace minimpl {
 
         template <size_t index, class... Rest>
         static constexpr auto helper(std::tuple<box<ToFind>, Rest...>) {
-            return Size<index>();
+            return Index<index>();
         }
 
         template <size_t index, class First, class... Rest>
@@ -90,7 +90,7 @@ namespace minimpl {
             return helper<index + 1>(std::tuple<Rest...>());
         }
 
-        using result = decltype(helper<0>(typename L::boxes()));
+        using type = decltype(helper<0>(typename L::boxes()));
     };
 
     template <class T, class ToFind>
@@ -108,9 +108,9 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<element_t<l, 2>, char>::value);
     CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
     CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
-    CHECK(std::is_same<find_element_t<l, int>, Size<0>>::value);
-    CHECK(std::is_same<find_element_t<l, double>, Size<1>>::value);
-    CHECK(std::is_same<find_element_t<l, char>, Size<2>>::value);
+    CHECK(std::is_same<find_element_t<l, int>, Index<0>>::value);
+    CHECK(std::is_same<find_element_t<l, double>, Index<1>>::value);
+    CHECK(std::is_same<find_element_t<l, char>, Index<2>>::value);
     CHECK(std::is_same<find_element_t<l, long>, NotFound>::value);
     CHECK(std::is_same<find_element_t<l2, long>, NotA<List>>::value);
 }
