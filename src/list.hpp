@@ -35,7 +35,6 @@ namespace minimpl {
     struct List {};         // is a list
     struct NotAList {};     // passed a param that should have been a list but was not
     struct OutOfBounds {};  // requested index is out of bounds
-    struct NotFound {};     // could not find element
 
     template <size_t s>
     struct Index {
@@ -77,12 +76,12 @@ namespace minimpl {
     struct find_element {
         template <size_t index>
         static constexpr auto helper(std::tuple<>) {
-            return NotFound();
+            return index;  // return list size if not found
         }
 
         template <size_t index, class... Rest>
         static constexpr auto helper(std::tuple<box<ToFind>, Rest...>) {
-            return Index<index>();
+            return index;
         }
 
         template <size_t index, class First, class... Rest>
@@ -90,11 +89,14 @@ namespace minimpl {
             return helper<index + 1>(std::tuple<Rest...>());
         }
 
-        using type = decltype(helper<0>(typename L::boxes()));
+        static constexpr size_t value = helper<0>(typename L::boxes());
+
+        static_assert(value < L::size, "type not foud in list");
+        static_assert(is_list<L>::value, "parameter L is not a list");
     };
 
-    template <class T, class ToFind>
-    using find_element_t = apply<find_element, maybe_list<T>, ToFind>;
+    template <class L, class ToFind>
+    constexpr size_t find_element<L, ToFind>::value;
 
 };  // namespace minimpl
 
@@ -108,9 +110,9 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<element_t<l, 2>, char>::value);
     CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
     CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
-    CHECK(std::is_same<find_element_t<l, int>, Index<0>>::value);
-    CHECK(std::is_same<find_element_t<l, double>, Index<1>>::value);
-    CHECK(std::is_same<find_element_t<l, char>, Index<2>>::value);
-    CHECK(std::is_same<find_element_t<l, long>, NotFound>::value);
-    CHECK(std::is_same<find_element_t<l2, long>, NotA<List>>::value);
+    CHECK(find_element<l, int>::value == 0);
+    CHECK(find_element<l, double>::value == 1);
+    CHECK(find_element<l, char>::value == 2);
+    // CHECK(find_element<l, long>::value == 3);
+    // CHECK(find_element<l2, long>::value == 3);
 }
