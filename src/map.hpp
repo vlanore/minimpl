@@ -46,6 +46,8 @@ namespace minimpl {
     // TODO : map_element
     template <class T, class Key>
     struct map_element : Box {
+        static_assert(is_map<T>::value, "T is not a map");
+
         static auto helper(std::tuple<>) { return box<NotFound>(); }
 
         template <class First, class... Rest>
@@ -65,9 +67,15 @@ namespace minimpl {
     template <class T, class Key>
     using map_element_t = unbox_t<map_element<T, Key>>;
 
-    // TODO : push_front
+    template <class T>
+    struct map_value_tuple : Box {
+        static_assert(is_map<T>::value, "T is not a map");
 
-    // TODO : map
+        using type = typename map_list_t<T, second_t>::tuple;
+    };
+
+    template <class T>
+    using map_value_tuple_t = unbox_t<map_value_tuple<T>>;
 
 };  // namespace minimpl
 
@@ -91,6 +99,7 @@ TEST_CASE("map tests") {
     CHECK(std::is_same<map_element_t<m, key1>, int>::value);
     CHECK(std::is_same<map_element_t<m, key2>, double>::value);
     CHECK(std::is_same<map_element_t<m, key3>, char>::value);
+    CHECK(std::is_same<map_value_tuple_t<m>, std::tuple<int, double, char>>::value);
     // CHECK(std::is_same<map_element_t<m, key4>, NotFound>::value); // fails (as expected)
 }
 

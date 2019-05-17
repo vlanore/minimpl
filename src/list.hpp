@@ -37,6 +37,7 @@ namespace minimpl {
     template <class... Elements>
     struct list : List {
         using boxes = std::tuple<box<Elements>...>;
+        using tuple = std::tuple<Elements...>;
         static constexpr size_t size = sizeof...(Elements);
     };
 
@@ -120,6 +121,24 @@ namespace minimpl {
     constexpr
         typename map_and_fold_list<L, F, Combinator>::T map_and_fold_list<L, F, Combinator>::value;
 
+    template <class L, template <class> class F>
+    struct map_list : Box {
+        static_assert(is_list<L>::value, "L is not a list");
+
+        static auto helper(std::tuple<>) { return list<>(); }
+
+        template <class First, class... Rest>
+        static auto helper(std::tuple<First, Rest...>) {
+            using recursive_call = decltype(helper(std::tuple<Rest...>()));
+            return list_push_front_t<recursive_call, F<unbox_t<First>>>();
+        }
+
+        using type = decltype(helper(typename L::boxes()));
+    };
+
+    template <class L, template <class> class F>
+    using map_list_t = unbox_t<map_list<L, F>>;
+
 };  // namespace minimpl
 
 //==================================================================================================
@@ -144,4 +163,7 @@ TEST_CASE("List tests") {
     using l4 = list_push_front_t<l, long>;
     CHECK(find_element<l4, long>::value == 0);
     CHECK(find_element<l4, int>::value == 1);
+
+    using l5 = list<box<int>, box<char>>;
+    CHECK(std::is_same<map_list_t<l5, unbox_t>, list<int, char>>::value);
 }
