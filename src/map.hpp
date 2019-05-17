@@ -44,7 +44,7 @@ namespace minimpl {
 
     // TODO : map_element
     template <class T, class Key>
-    struct map_element {
+    struct map_element : Box {
         static auto helper(std::tuple<>) { return box<NotFound>(); }
 
         template <class First, class... Rest>
@@ -62,7 +62,7 @@ namespace minimpl {
     };
 
     template <class T, class Key>
-    using map_element_t = typename map_element<T, Key>::type;
+    using map_element_t = unbox_t<map_element<T, Key>>;
 
     // TODO : push_front
 

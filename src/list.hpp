@@ -61,17 +61,17 @@ namespace minimpl {
         static_assert(is_list<L>::value, "parameter L is not a list");
 
         template <size_t index>
-        static constexpr auto helper(std::tuple<>) {
+        static constexpr size_t helper(std::tuple<>) {
             return index;  // return list size if not found
         }
 
         template <size_t index, class... Rest>
-        static constexpr auto helper(std::tuple<box<ToFind>, Rest...>) {
+        static constexpr size_t helper(std::tuple<box<ToFind>, Rest...>) {
             return index;
         }
 
         template <size_t index, class First, class... Rest>
-        static constexpr auto helper(std::tuple<First, Rest...>) {
+        static constexpr size_t helper(std::tuple<First, Rest...>) {
             return helper<index + 1>(std::tuple<Rest...>());
         }
 
@@ -81,6 +81,29 @@ namespace minimpl {
 
     template <class L, class ToFind>
     constexpr size_t find_element<L, ToFind>::value;
+
+    template <class L, template <class> class F, class Combinator>
+    struct map_and_fold_list {
+        static_assert(is_list<L>::value, "L is not a list");
+        static_assert(L::size > 0, "L is empty");
+        using T = decltype(F<list_element_t<L, 0>>::value);
+
+        template <class Last>
+        static constexpr T helper(std::tuple<box<Last>>) {
+            return F<Last>::value;
+        }
+
+        template <class First, class Second, class... Rest>
+        static constexpr T helper(std::tuple<box<First>, Second, Rest...>) {
+            return Combinator()(F<First>::value, helper(std::tuple<Second, Rest...>()));
+        }
+
+        static constexpr T value = helper(typename L::boxes());
+    };
+
+    template <class L, template <class> class F, class Combinator>
+    constexpr
+        typename map_and_fold_list<L, F, Combinator>::T map_and_fold_list<L, F, Combinator>::value;
 
 };  // namespace minimpl
 
@@ -101,4 +124,7 @@ TEST_CASE("List tests") {
     CHECK(find_element<l, char>::value == 2);
     // CHECK(find_element<l, long>::value == 3);
     // CHECK(find_element<l2, long>::value == 3);
+    using l3 = list<int, list<>, double>;
+    CHECK(map_and_fold_list<l3, is_list, std::plus<bool>>::value == true);
+    CHECK(map_and_fold_list<l, is_list, std::plus<bool>>::value == false);
 }
