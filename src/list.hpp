@@ -31,10 +31,8 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 namespace minimpl {
-    // type tags
-    struct List {};         // is a list
-    struct NotAList {};     // passed a param that should have been a list but was not
-    struct OutOfBounds {};  // requested index is out of bounds
+
+    struct List {};  // is a list
 
     template <class... Elements>
     struct list : List {
@@ -49,14 +47,14 @@ namespace minimpl {
     using is_list = std::is_base_of<List, T>;
 
     template <class L, size_t index>
-    struct get_element {
+    struct get_element : Box {
         static_assert(is_list<L>::value, "L is not a list");
         static_assert(index < L::size, "index out of bounds");
         using type = unbox_t<std::tuple_element_t<index, typename L::boxes>>;
     };
 
     template <class T, size_t index>
-    using get_element_t = typename get_element<T, index>::type;
+    using get_element_t = unbox_t<get_element<T, index>>;
 
     template <class L, class ToFind>
     struct find_element {

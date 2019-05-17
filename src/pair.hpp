@@ -30,7 +30,7 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 namespace minimpl {
-    // type tags
+
     struct Pair {};  // object is a pair
 
     // a pair of types
@@ -45,24 +45,24 @@ namespace minimpl {
     using is_pair = std::is_base_of<Pair, T>;
 
     template <class T>
-    struct first {
+    struct first : Box {
         static_assert(is_pair<T>::value, "T is not a pair");
         using type = typename T::first;
     };
 
     template <class T>
-    struct second {
+    struct second : Box {
         static_assert(is_pair<T>::value, "T is not a pair");
         using type = typename T::second;
     };
 
     // get first pair element without "typename *::type"
     template <class T>
-    using first_t = typename first<T>::type;
+    using first_t = unbox_t<first<T>>;
 
     // get second pair element without "typename *::type"
     template <class T>
-    using second_t = typename second<T>::type;
+    using second_t = unbox_t<second<T>>;
 
 };  // namespace minimpl
 

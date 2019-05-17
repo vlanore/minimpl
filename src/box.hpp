@@ -30,7 +30,7 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 namespace minimpl {
-    // type tags
+
     struct Box {};  // type tag for is_box trait
 
     // "box" struct used to pass type info around without needing to instantiate objects
@@ -44,7 +44,7 @@ namespace minimpl {
     using is_box = std::is_base_of<Box, T>;
 
     template <class T>
-    struct unbox {
+    struct unbox : Box {
         static_assert(is_box<T>::value, "T is not a box");
         using type = typename T::type;
     };
