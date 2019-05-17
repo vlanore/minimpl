@@ -47,14 +47,14 @@ namespace minimpl {
     using is_list = std::is_base_of<List, T>;
 
     template <class L, size_t index>
-    struct get_element : Box {
+    struct list_element : Box {
         static_assert(is_list<L>::value, "L is not a list");
         static_assert(index < L::size, "index out of bounds");
         using type = unbox_t<std::tuple_element_t<index, typename L::boxes>>;
     };
 
     template <class T, size_t index>
-    using get_element_t = unbox_t<get_element<T, index>>;
+    using list_element_t = unbox_t<list_element<T, index>>;
 
     template <class L, class ToFind>
     struct find_element {
@@ -84,14 +84,16 @@ namespace minimpl {
 
 };  // namespace minimpl
 
+//==================================================================================================
+// TESTS
 TEST_CASE("List tests") {
     using namespace minimpl;
     using l = list<int, double, char>;
     struct l2 {};  // not a list
     CHECK(l::size == 3);
-    CHECK(std::is_same<get_element_t<l, 0>, int>::value);
-    CHECK(std::is_same<get_element_t<l, 1>, double>::value);
-    CHECK(std::is_same<get_element_t<l, 2>, char>::value);
+    CHECK(std::is_same<list_element_t<l, 0>, int>::value);
+    CHECK(std::is_same<list_element_t<l, 1>, double>::value);
+    CHECK(std::is_same<list_element_t<l, 2>, char>::value);
     // CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
     // CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
     CHECK(find_element<l, int>::value == 0);
