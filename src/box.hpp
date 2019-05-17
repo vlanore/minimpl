@@ -26,8 +26,8 @@ license and that you accept its terms.*/
 
 #pragma once
 
+#include <type_traits>
 #include "doctest.h"
-#include "maybe.hpp"
 
 namespace minimpl {
     // type tags
@@ -41,19 +41,17 @@ namespace minimpl {
 
     // is_box type trait
     template <class T>
-    using is_box = has_tag<Box, T>;
+    using is_box = std::is_base_of<Box, T>;
 
     template <class T>
-    using maybe_box = maybe<Box, box<Invalid>, T>;
-
-    template <class T>
-    struct unbox_f {
+    struct unbox {
+        static_assert(is_box<T>::value, "T is not a box");
         using type = typename T::type;
     };
 
     // box_t to get box::type without writing "typename box::type"
     template <class T>
-    using unbox = apply<unbox_f, maybe_box<T>>;
+    using unbox_t = typename unbox<T>::type;
 
 };  // namespace minimpl
 
@@ -64,8 +62,8 @@ TEST_CASE("Box tests") {
 
     using t = box<double>;
     struct t2 {};  // NOT a box
-    CHECK(std::is_same<unbox<t>, double>::value);
-    CHECK(std::is_same<unbox<t2>, NotA<Box>>::value);
+    CHECK(std::is_same<unbox_t<t>, double>::value);
+    // CHECK(std::is_same<unbox_t<t2>, NotABox>::value);
     CHECK(is_box<t>::value);
     CHECK(not is_box<t2>::value);
 }

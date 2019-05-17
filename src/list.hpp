@@ -36,11 +36,6 @@ namespace minimpl {
     struct NotAList {};     // passed a param that should have been a list but was not
     struct OutOfBounds {};  // requested index is out of bounds
 
-    template <size_t s>
-    struct Index {
-        static constexpr size_t get() { return s; }
-    };
-
     template <class... Elements>
     struct list : List {
         using boxes = std::tuple<box<Elements>...>;
@@ -51,29 +46,22 @@ namespace minimpl {
     constexpr size_t list<Elements...>::size;
 
     template <class T>
-    using is_list = has_tag<List, T>;
+    using is_list = std::is_base_of<List, T>;
 
-    template <class T>
-    using maybe_list = maybe<List, list<>, T>;
-
-    template <class L, class Index, bool within_bounds = (Index::get() < L::size)>
-    struct get_element_helper {
-        using type = OutOfBounds;
+    template <class L, size_t index>
+    struct get_element {
+        static_assert(is_list<L>::value, "L is not a list");
+        static_assert(index < L::size, "index out of bounds");
+        using type = unbox_t<std::tuple_element_t<index, typename L::boxes>>;
     };
-
-    template <class L, class Index>
-    struct get_element_helper<L, Index, true> {
-        using type = unbox<std::tuple_element_t<Index::get(), typename L::boxes>>;
-    };
-
-    template <class L, class Index>
-    using get_element = get_element_helper<L, Index>;
 
     template <class T, size_t index>
-    using element_t = apply<get_element, maybe_list<T>, Index<index>>;
+    using get_element_t = typename get_element<T, index>::type;
 
     template <class L, class ToFind>
     struct find_element {
+        static_assert(is_list<L>::value, "parameter L is not a list");
+
         template <size_t index>
         static constexpr auto helper(std::tuple<>) {
             return index;  // return list size if not found
@@ -90,9 +78,7 @@ namespace minimpl {
         }
 
         static constexpr size_t value = helper<0>(typename L::boxes());
-
         static_assert(value < L::size, "type not foud in list");
-        static_assert(is_list<L>::value, "parameter L is not a list");
     };
 
     template <class L, class ToFind>
@@ -105,11 +91,11 @@ TEST_CASE("List tests") {
     using l = list<int, double, char>;
     struct l2 {};  // not a list
     CHECK(l::size == 3);
-    CHECK(std::is_same<element_t<l, 0>, int>::value);
-    CHECK(std::is_same<element_t<l, 1>, double>::value);
-    CHECK(std::is_same<element_t<l, 2>, char>::value);
-    CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
-    CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
+    CHECK(std::is_same<get_element_t<l, 0>, int>::value);
+    CHECK(std::is_same<get_element_t<l, 1>, double>::value);
+    CHECK(std::is_same<get_element_t<l, 2>, char>::value);
+    // CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
+    // CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
     CHECK(find_element<l, int>::value == 0);
     CHECK(find_element<l, double>::value == 1);
     CHECK(find_element<l, char>::value == 2);

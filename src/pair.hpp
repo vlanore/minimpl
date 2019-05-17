@@ -45,25 +45,24 @@ namespace minimpl {
     using is_pair = std::is_base_of<Pair, T>;
 
     template <class T>
-    using maybe_pair = maybe<Pair, pair<Invalid, Invalid>, T>;
-
-    template <class T>
-    struct first_f {
+    struct first {
+        static_assert(is_pair<T>::value, "T is not a pair");
         using type = typename T::first;
     };
 
     template <class T>
-    struct second_f {
+    struct second {
+        static_assert(is_pair<T>::value, "T is not a pair");
         using type = typename T::second;
     };
 
     // get first pair element without "typename *::type"
     template <class T>
-    using pair_first = apply<first_f, maybe_pair<T>>;
+    using first_t = typename first<T>::type;
 
     // get second pair element without "typename *::type"
     template <class T>
-    using pair_second = apply<second_f, maybe_pair<T>>;
+    using second_t = typename second<T>::type;
 
 };  // namespace minimpl
 
@@ -73,9 +72,9 @@ TEST_CASE("Pair test") {
     using p = pair<int, double>;
     struct p2 {};  // not a pair
 
-    CHECK(std::is_same<pair_first<p>, int>::value);
-    CHECK(std::is_same<pair_second<p>, double>::value);
-    CHECK(std::is_same<pair_second<p2>, NotA<Pair>>::value);
+    CHECK(std::is_same<first_t<p>, int>::value);
+    CHECK(std::is_same<second_t<p>, double>::value);
+    // CHECK(std::is_same<second_t<p2>, double>::value); // fails (as it should)
     CHECK(is_pair<p>::value);
     CHECK(not is_pair<p2>::value);
 }
