@@ -35,7 +35,8 @@ namespace minimpl {
     struct List {};         // is a list
     struct NotAList {};     // passed a param that should have been a list but was not
     struct OutOfBounds {};  // requested index is out of bounds
-    // struct NotFound {};     // could not find element
+    struct NotFound {};     // could not find element
+
     template <size_t s>
     struct Size {
         static constexpr size_t get() { return s; }
@@ -72,6 +73,29 @@ namespace minimpl {
     template <class T, size_t index>
     using element_t = apply<get_element, maybe_list<T>, Size<index>>;
 
+    template <class L, class ToFind>
+    struct find_element {
+        template <size_t index>
+        static constexpr auto helper(std::tuple<>) {
+            return NotFound();
+        }
+
+        template <size_t index, class... Rest>
+        static constexpr auto helper(std::tuple<box<ToFind>, Rest...>) {
+            return Size<index>();
+        }
+
+        template <size_t index, class First, class... Rest>
+        static constexpr auto helper(std::tuple<First, Rest...>) {
+            return helper<index + 1>(std::tuple<Rest...>());
+        }
+
+        using result = decltype(helper<0>(typename L::boxes()));
+    };
+
+    template <class T, class ToFind>
+    using find_element_t = apply<find_element, maybe_list<T>, ToFind>;
+
 };  // namespace minimpl
 
 TEST_CASE("List tests") {
@@ -84,4 +108,9 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<element_t<l, 2>, char>::value);
     CHECK(std::is_same<element_t<l, 3>, OutOfBounds>::value);
     CHECK(std::is_same<element_t<l2, 1>, NotA<List>>::value);
+    CHECK(std::is_same<find_element_t<l, int>, Size<0>>::value);
+    CHECK(std::is_same<find_element_t<l, double>, Size<1>>::value);
+    CHECK(std::is_same<find_element_t<l, char>, Size<2>>::value);
+    CHECK(std::is_same<find_element_t<l, long>, NotFound>::value);
+    CHECK(std::is_same<find_element_t<l2, long>, NotA<List>>::value);
 }
