@@ -32,21 +32,26 @@ license and that you accept its terms.*/
 
 namespace minimpl {
 
-    struct List {};  // is a list
+    // list metatype
+    // to be used as a tag to identify list types
+    struct List {};
 
+    // list type trait
+    template <class T>
+    using is_list = std::is_base_of<List, T>;
+
+    // list default class ()
     template <class... Elements>
     struct list : List {
-        using boxes = std::tuple<box<Elements>...>;
+        using boxes = std::tuple<box<Elements>...>;  // to be used when instantiation is needed
         using tuple = std::tuple<Elements...>;
         static constexpr size_t size = sizeof...(Elements);
     };
 
     template <class... Elements>
-    constexpr size_t list<Elements...>::size;
-
-    template <class T>
-    using is_list = std::is_base_of<List, T>;
-
+    constexpr size_t list<Elements...>::size;  // needed for linking
+    
+    // get element at index index, fails if L is not a list or if out of bounds
     template <class L, size_t index>
     struct list_element : Box {
         static_assert(is_list<L>::value, "L is not a list");
