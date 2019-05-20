@@ -36,8 +36,8 @@ namespace minimpl {
 
     template <class... Pairs>
     struct map : Map, list<Pairs...> {
-        static_assert(map_and_fold_list<list<Pairs...>, is_pair, std::logical_and<bool>>::value,
-                      "template arguments contain non-pairs");
+        // static_assert(map_and_fold_list<list<Pairs...>, is_pair, std::logical_and<bool>>::value,
+        //               "template arguments contain non-pairs");
     };
 
     template <class T>
@@ -66,6 +66,35 @@ namespace minimpl {
 
     template <class T, class Key>
     using map_element_t = unbox_t<map_element<T, Key>>;
+
+    template <class T, class Key>
+    struct map_element_index {
+        static_assert(is_map<T>::value, "T is not a map");
+
+        template <size_t index>
+        static constexpr size_t helper(std::tuple<>) {
+            return index;  // return list size if not found
+        }
+
+        template <size_t index, class Value, class... Rest>
+        static constexpr size_t helper(std::tuple<pair<Key, Value>, Rest...>) {
+            return index;
+        }
+
+        template <size_t index, class First, class... Rest>
+        static constexpr size_t helper(std::tuple<First, Rest...>) {
+            return helper<index + 1>(std::tuple<Rest...>());
+        }
+
+        static constexpr size_t value = helper<0>(typename T::tuple());
+        static_assert(value < T::size, "type not foud in list");
+    };
+
+    template <class T, class Key>
+    constexpr size_t map_element_index<T, Key>::value;
+
+    template <class T, class Key>
+    using map_element_index_t = unbox_t<map_element_index<T, Key>>;
 
     template <class T>
     struct map_value_tuple : Box {
