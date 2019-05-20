@@ -63,8 +63,8 @@ namespace minimpl {
     using list_element_t = unbox_t<list_element<T, index>>;
 
     //==============================================================================================
-    template <class L, class ToFind>
-    struct list_find {
+    template <class L, template <class> class Condition>
+    struct list_find_if {
         static_assert(is_list<L>::value, "parameter L is not a list");
 
         template <size_t index>
@@ -72,18 +72,29 @@ namespace minimpl {
             return index;  // return list size if not found
         }
 
-        template <size_t index, class... Rest>
-        static constexpr size_t helper(std::tuple<box<ToFind>, Rest...>) {
-            return index;
-        }
-
         template <size_t index, class First, class... Rest>
         static constexpr size_t helper(std::tuple<First, Rest...>) {
-            return helper<index + 1>(std::tuple<Rest...>());
+            constexpr bool condition_ok = Condition<unbox_t<First>>::value;
+            auto recursive_call = helper<index + 1>(std::tuple<Rest...>());
+            return condition_ok ? index : recursive_call;
         }
 
         static constexpr size_t value = helper<0>(typename L::boxes());
         static_assert(value < L::size, "type not foud in list");
+    };
+
+    template <class L, template <class> class Condition>
+    constexpr size_t list_find_if<L, Condition>::value;
+
+    //==============================================================================================
+    template <class L, class ToFind>
+    struct list_find {
+        static_assert(is_list<L>::value, "parameter L is not a list");
+
+        template <class T>
+        using is_tofind = std::is_same<T, ToFind>;
+
+        static constexpr size_t value = list_find_if<L, is_tofind>::value;
     };
 
     template <class L, class ToFind>
