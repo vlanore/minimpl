@@ -56,7 +56,6 @@ namespace minimpl {
 };  // namespace minimpl
 
 //==================================================================================================
-// TESTS
 TEST_CASE("Box tests") {
     using namespace minimpl;
 

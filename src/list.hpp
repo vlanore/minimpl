@@ -162,7 +162,6 @@ namespace minimpl {
 };  // namespace minimpl
 
 //==================================================================================================
-// TESTS
 TEST_CASE("List tests") {
     using namespace minimpl;
     using l = list<int, double, char>;

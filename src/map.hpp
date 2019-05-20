@@ -109,8 +109,6 @@ namespace minimpl {
 };  // namespace minimpl
 
 //==================================================================================================
-// TESTS
-
 TEST_CASE("map tests") {
     struct key1 {};
     struct key2 {};
@@ -131,41 +129,3 @@ TEST_CASE("map tests") {
     CHECK(std::is_same<map_value_tuple_t<m>, std::tuple<int, double, char>>::value);
     // CHECK(std::is_same<map_element_t<m, key4>, NotFound>::value); // fails (as expected)
 }
-
-// TEST_CASE("Type map") {
-//     using my_map = Map<Pair<prop1, int>, Pair<prop2, double>>;
-//     using prop1_t = typename my_map::get<prop1>;
-//     using prop2_t = typename my_map::get<prop2>;
-//     constexpr int i1 = my_map::get_index<prop1>();
-//     constexpr int i2 = my_map::get_index<prop2>();
-
-//     CHECK(my_map::size() == 2);
-//     CHECK((std::is_same<prop1_t, int>::value));
-//     CHECK((std::is_same<prop2_t, double>::value));
-//     CHECK(i1 == 0);
-//     CHECK(i2 == 1);
-
-//     using tuple_t = my_map::value_tuple_t;
-//     CHECK((std::is_same<tuple<int, double>, tuple_t>::value));
-
-//     using my_map2 = my_map::push_front<prop3, string>;
-//     using prop3_t = typename my_map2::get<prop3>;
-//     CHECK((std::is_same<prop3_t, string>::value));
-//     CHECK(my_map2::get_index<prop3>() == 0);  // added in front
-//     CHECK(my_map2::get_index<prop1>() == 1);
-//     CHECK(my_map2::get_index<prop2>() == 2);
-// }
-
-// TEST_CASE("type map index to tag") {
-//     using my_map = Map<Pair<prop1, int>, Pair<prop2, double>>;
-//     using tag1 = my_map::get_tag<0>;
-//     using tag2 = my_map::get_tag<1>;
-//     CHECK((std::is_same<tag1, prop1>::value));
-//     CHECK((std::is_same<tag2, prop2>::value));
-// }
-
-// TEST_CASE("Type map type_of") {
-//     using my_map = Map<Pair<prop1, int&>, Pair<prop2, double>>;
-//     CHECK((std::is_same<my_map::type_of<prop1>, int&>::value));
-//     CHECK((std::is_same<my_map::type_of<prop2>, double>::value));
-// }

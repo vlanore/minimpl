@@ -67,7 +67,6 @@ namespace minimpl {
 };  // namespace minimpl
 
 //==================================================================================================
-// TESTS
 TEST_CASE("Pair test") {
     using namespace minimpl;
 
