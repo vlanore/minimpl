@@ -73,23 +73,10 @@ namespace minimpl {
     struct map_element_index {
         static_assert(is_map<T>::value, "T is not a map");
 
-        template <size_t index>
-        static constexpr size_t helper(std::tuple<>) {
-            return index;  // return list size if not found
-        }
+        template <class E>
+        using is_correct_entry = std::is_same<Key, first_t<E>>;
 
-        template <size_t index, class Value, class... Rest>
-        static constexpr size_t helper(std::tuple<pair<Key, Value>, Rest...>) {
-            return index;
-        }
-
-        template <size_t index, class First, class... Rest>
-        static constexpr size_t helper(std::tuple<First, Rest...>) {
-            return helper<index + 1>(std::tuple<Rest...>());
-        }
-
-        static constexpr size_t value = helper<0>(typename T::tuple());
-        static_assert(value < T::size, "type not foud in list");
+        static constexpr size_t value = list_find_if<T, is_correct_entry>::value;
     };
 
     template <class T, class Key>
@@ -127,5 +114,8 @@ TEST_CASE("map tests") {
     CHECK(std::is_same<map_element_t<m, key2>, double>::value);
     CHECK(std::is_same<map_element_t<m, key3>, char>::value);
     CHECK(std::is_same<map_value_tuple_t<m>, std::tuple<int, double, char>>::value);
+    CHECK(map_element_index<m, key1>::value == 0);
+    CHECK(map_element_index<m, key2>::value == 1);
+    CHECK(map_element_index<m, key3>::value == 2);
     // CHECK(std::is_same<map_element_t<m, key4>, NotFound>::value); // fails (as expected)
 }
