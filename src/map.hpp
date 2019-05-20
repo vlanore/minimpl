@@ -43,7 +43,8 @@ namespace minimpl {
     template <class T>
     using is_map = std::is_base_of<Map, T>;
 
-    // TODO : map_element
+    //==============================================================================================
+    // map_element
     template <class T, class Key>
     struct map_element : Box {
         static_assert(is_map<T>::value, "T is not a map");
@@ -67,6 +68,7 @@ namespace minimpl {
     template <class T, class Key>
     using map_element_t = unbox_t<map_element<T, Key>>;
 
+    //==============================================================================================
     template <class T, class Key>
     struct map_element_index {
         static_assert(is_map<T>::value, "T is not a map");
@@ -93,9 +95,7 @@ namespace minimpl {
     template <class T, class Key>
     constexpr size_t map_element_index<T, Key>::value;
 
-    template <class T, class Key>
-    using map_element_index_t = unbox_t<map_element_index<T, Key>>;
-
+    //==============================================================================================
     template <class T>
     struct map_value_tuple : Box {
         static_assert(is_map<T>::value, "T is not a map");
