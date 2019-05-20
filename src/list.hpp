@@ -31,7 +31,6 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 namespace minimpl {
-
     // list metatype
     // to be used as a tag to identify list types
     struct List {};
@@ -50,7 +49,8 @@ namespace minimpl {
 
     template <class... Elements>
     constexpr size_t list<Elements...>::size;  // needed for linking
-    
+
+    //==============================================================================================
     // get element at index index, fails if L is not a list or if out of bounds
     template <class L, size_t index>
     struct list_element : Box {
@@ -62,8 +62,9 @@ namespace minimpl {
     template <class T, size_t index>
     using list_element_t = unbox_t<list_element<T, index>>;
 
+    //==============================================================================================
     template <class L, class ToFind>
-    struct find_element {
+    struct list_find {
         static_assert(is_list<L>::value, "parameter L is not a list");
 
         template <size_t index>
@@ -86,8 +87,9 @@ namespace minimpl {
     };
 
     template <class L, class ToFind>
-    constexpr size_t find_element<L, ToFind>::value;
+    constexpr size_t list_find<L, ToFind>::value;
 
+    //==============================================================================================
     template <class L, class ToAdd>
     struct list_push_front : Box {
         static_assert(is_list<L>::value, "parameter L is not a list");
@@ -103,8 +105,9 @@ namespace minimpl {
     template <class L, class ToAdd>
     using list_push_front_t = unbox_t<list_push_front<L, ToAdd>>;
 
+    //==============================================================================================
     template <class L, template <class> class F, class Combinator>
-    struct map_and_fold_list {
+    struct list_fold_to_values {
         static_assert(is_list<L>::value, "L is not a list");
         static_assert(L::size > 0, "L is empty");
         using T = decltype(F<list_element_t<L, 0>>::value);
@@ -123,11 +126,12 @@ namespace minimpl {
     };
 
     template <class L, template <class> class F, class Combinator>
-    constexpr
-        typename map_and_fold_list<L, F, Combinator>::T map_and_fold_list<L, F, Combinator>::value;
+    constexpr typename list_fold_to_values<L, F, Combinator>::T
+        list_fold_to_values<L, F, Combinator>::value;
 
+    //==============================================================================================
     template <class L, template <class> class F>
-    struct map_list : Box {
+    struct list_map : Box {
         static_assert(is_list<L>::value, "L is not a list");
 
         static auto helper(std::tuple<>) { return list<>(); }
@@ -142,7 +146,7 @@ namespace minimpl {
     };
 
     template <class L, template <class> class F>
-    using map_list_t = unbox_t<map_list<L, F>>;
+    using list_map_t = unbox_t<list_map<L, F>>;
 
 };  // namespace minimpl
 
@@ -157,18 +161,18 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<list_element_t<l, 1>, double>::value);
     CHECK(std::is_same<list_element_t<l, 2>, char>::value);
 
-    CHECK(find_element<l, int>::value == 0);
-    CHECK(find_element<l, double>::value == 1);
-    CHECK(find_element<l, char>::value == 2);
+    CHECK(list_find<l, int>::value == 0);
+    CHECK(list_find<l, double>::value == 1);
+    CHECK(list_find<l, char>::value == 2);
 
     using l3 = list<int, list<>, double>;
-    CHECK(map_and_fold_list<l3, is_list, std::logical_or<bool>>::value == true);
-    CHECK(map_and_fold_list<l, is_list, std::logical_or<bool>>::value == false);
+    CHECK(list_fold_to_values<l3, is_list, std::logical_or<bool>>::value == true);
+    CHECK(list_fold_to_values<l, is_list, std::logical_or<bool>>::value == false);
 
     using l4 = list_push_front_t<l, long>;
-    CHECK(find_element<l4, long>::value == 0);
-    CHECK(find_element<l4, int>::value == 1);
+    CHECK(list_find<l4, long>::value == 0);
+    CHECK(list_find<l4, int>::value == 1);
 
     using l5 = list<box<int>, box<char>>;
-    CHECK(std::is_same<map_list_t<l5, unbox_t>, list<int, char>>::value);
+    CHECK(std::is_same<list_map_t<l5, unbox_t>, list<int, char>>::value);
 }

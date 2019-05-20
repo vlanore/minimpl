@@ -100,7 +100,7 @@ namespace minimpl {
     struct map_value_tuple : Box {
         static_assert(is_map<T>::value, "T is not a map");
 
-        using type = typename map_list_t<T, second_t>::tuple;
+        using type = typename list_map_t<T, second_t>::tuple;
     };
 
     template <class T>
