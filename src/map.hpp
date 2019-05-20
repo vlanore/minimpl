@@ -44,31 +44,6 @@ namespace minimpl {
     using is_map = std::is_base_of<Map, T>;
 
     //==============================================================================================
-    // map_element
-    template <class T, class Key>
-    struct map_element : Box {
-        static_assert(is_map<T>::value, "T is not a map");
-
-        static auto helper(std::tuple<>) { return box<NotFound>(); }
-
-        template <class First, class... Rest>
-        static auto helper(std::tuple<First, Rest...>) {
-            return helper(std::tuple<Rest...>());
-        }
-
-        template <class Value, class... Rest>
-        static auto helper(std::tuple<box<pair<Key, Value>>, Rest...>) {
-            return box<Value>();
-        }
-
-        using type = unbox_t<decltype(helper(typename T::boxes()))>;
-        static_assert(not std::is_same<NotFound, type>::value, "key not found in map");
-    };
-
-    template <class T, class Key>
-    using map_element_t = unbox_t<map_element<T, Key>>;
-
-    //==============================================================================================
     template <class T, class Key>
     struct map_element_index {
         static_assert(is_map<T>::value, "T is not a map");
@@ -81,6 +56,17 @@ namespace minimpl {
 
     template <class T, class Key>
     constexpr size_t map_element_index<T, Key>::value;
+
+    //==============================================================================================
+    // map_element
+    template <class T, class Key>
+    struct map_element : Box {
+        static_assert(is_map<T>::value, "T is not a map");
+        using type = second_t<list_element_t<T, map_element_index<T, Key>::value>>;
+    };
+
+    template <class T, class Key>
+    using map_element_t = unbox_t<map_element<T, Key>>;
 
     //==============================================================================================
     template <class T>
