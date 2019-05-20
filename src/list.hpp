@@ -117,28 +117,22 @@ namespace minimpl {
     using list_push_front_t = unbox_t<list_push_front<L, ToAdd>>;
 
     //==============================================================================================
-    template <class L, template <class> class F, class Combinator>
-    struct list_fold_to_values {
+    template <class L, template <class> class F, class Combinator, class T, T Zero>
+    struct list_reduce_to_value {
         static_assert(is_list<L>::value, "L is not a list");
-        static_assert(L::size > 0, "L is empty");
-        using T = decltype(F<list_element_t<L, 0>>::value);
 
-        template <class Last>
-        static constexpr T helper(std::tuple<box<Last>>) {
-            return F<Last>::value;
-        }
+        static constexpr T helper(std::tuple<>) { return Zero; }
 
-        template <class First, class Second, class... Rest>
-        static constexpr T helper(std::tuple<box<First>, Second, Rest...>) {
-            return Combinator()(F<First>::value, helper(std::tuple<Second, Rest...>()));
+        template <class First, class... Rest>
+        static constexpr T helper(std::tuple<box<First>, Rest...>) {
+            return Combinator()(F<First>::value, helper(std::tuple<Rest...>()));
         }
 
         static constexpr T value = helper(typename L::boxes());
     };
 
-    template <class L, template <class> class F, class Combinator>
-    constexpr typename list_fold_to_values<L, F, Combinator>::T
-        list_fold_to_values<L, F, Combinator>::value;
+    template <class L, template <class> class F, class Combinator, class T, T Zero>
+    constexpr T list_reduce_to_value<L, F, Combinator, T, Zero>::value;
 
     //==============================================================================================
     template <class L, template <class> class F>
@@ -176,8 +170,8 @@ TEST_CASE("List tests") {
     CHECK(list_find<l, char>::value == 2);
 
     using l3 = list<int, list<>, double>;
-    CHECK(list_fold_to_values<l3, is_list, std::logical_or<bool>>::value == true);
-    CHECK(list_fold_to_values<l, is_list, std::logical_or<bool>>::value == false);
+    CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value == true);
+    CHECK(list_reduce_to_value<l, is_list, std::logical_or<bool>, bool, false>::value == false);
 
     using l4 = list_push_front_t<l, long>;
     CHECK(list_find<l4, long>::value == 0);

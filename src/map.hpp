@@ -36,8 +36,9 @@ namespace minimpl {
 
     template <class... Pairs>
     struct map : Map, list<Pairs...> {
-        // static_assert(map_and_fold_list<list<Pairs...>, is_pair, std::logical_and<bool>>::value,
-        //               "template arguments contain non-pairs");
+        static_assert(list_reduce_to_value<list<Pairs...>, is_pair, std::logical_and<bool>, bool,
+                                           true>::value,
+                      "template arguments contain non-pairs");
     };
 
     template <class T>
