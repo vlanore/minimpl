@@ -45,6 +45,31 @@ namespace minimpl {
     using is_map = std::is_base_of<Map, T>;
 
     //==============================================================================================
+    template <class L>
+    struct list_to_map : Box {
+        static_assert(is_list<L>::value, "L is not a list");
+
+        template <class... Elements>
+        static auto helper(std::tuple<Elements...>) {
+            return map<Elements...>();
+        }
+
+        using type = decltype(helper(typename L::tuple()));
+    };
+
+    template <class L>
+    using list_to_map_t = unbox_t<list_to_map<L>>;
+
+    //==============================================================================================
+    template <class M, class Key, class Value>
+    struct map_push_front : Box {
+        using type = list_to_map_t<list_push_front_t<M, pair<Key, Value>>>;
+    };
+
+    template <class M, class Key, class Value>
+    using map_push_front_t = unbox_t<map_push_front<M, Key, Value>>;
+
+    //==============================================================================================
     template <class T, class Key>
     struct map_element_index {
         static_assert(is_map<T>::value, "T is not a map");
