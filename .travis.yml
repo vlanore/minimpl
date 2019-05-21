@@ -23,8 +23,8 @@ matrix:
       - COMPILER=g++-5
     script:
       - make debug && make test
-    after_success:
-      - bash <(curl -s https://codecov.io/bash)
+    # after_success:
+    #   - bash <(curl -s https://codecov.io/bash)
 
   # ~~ linux clang ~~ =========================================
   - os: linux
