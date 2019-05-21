@@ -64,7 +64,7 @@ namespace minimpl {
 
     //==============================================================================================
     template <class L, template <class> class Condition>
-    struct list_find_if {
+    struct list_find_if_nocheck {
         static_assert(is_list<L>::value, "parameter L is not a list");
 
         template <size_t index>
@@ -80,6 +80,16 @@ namespace minimpl {
         }
 
         static constexpr size_t value = helper<0>(typename L::boxes());
+    };
+
+    template <class L, template <class> class Condition>
+    constexpr size_t list_find_if_nocheck<L, Condition>::value;
+
+    //==============================================================================================
+    template <class L, template <class> class Condition>
+    struct list_find_if {
+        static_assert(is_list<L>::value, "parameter L is not a list");
+        static constexpr size_t value = list_find_if_nocheck<L, Condition>::value;
         static_assert(value < L::size, "type not foud in list");
     };
 
@@ -99,6 +109,20 @@ namespace minimpl {
 
     template <class L, class ToFind>
     constexpr size_t list_find<L, ToFind>::value;
+
+    //==============================================================================================
+    template <class L, class ToFind>
+    struct list_contains {
+        static_assert(is_list<L>::value, "parameter L is not a list");
+
+        template <class T>
+        using is_tofind = std::is_same<T, ToFind>;
+
+        static constexpr bool value = list_find_if_nocheck<L, is_tofind>::value < L::size;
+    };
+
+    template <class L, class ToFind>
+    constexpr bool list_contains<L, ToFind>::value;
 
     //==============================================================================================
     template <class L, class ToAdd>
@@ -168,6 +192,10 @@ TEST_CASE("List tests") {
     CHECK(list_find<l, int>::value == 0);
     CHECK(list_find<l, double>::value == 1);
     CHECK(list_find<l, char>::value == 2);
+    CHECK(list_contains<l, int>::value);
+    CHECK(list_contains<l, char>::value);
+    CHECK(!list_contains<l, long>::value);
+    CHECK(!list_contains<l, std::string>::value);
 
     using l3 = list<int, list<>, double>;
     CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value == true);
