@@ -130,4 +130,16 @@ TEST_CASE("map tests") {
     CHECK(map_element_index<m, key2>::value == 1);
     CHECK(map_element_index<m, key3>::value == 2);
     // CHECK(std::is_same<map_element_t<m, key4>, NotFound>::value); // fails (as expected)
+
+    using l = list<pair<key1, int>, pair<key2, double>>;
+    using m3 = list_to_map_t<l>;
+    CHECK(!is_map<l>::value);
+    CHECK(is_map<m3>::value);
+    CHECK(std::is_same<map_element_t<m3, key2>, double>::value);
+    using m4 = map_push_front_t<m3, key3, char>;
+    CHECK(std::is_same<map_element_t<m4, key2>, double>::value);
+    CHECK(std::is_same<map_element_t<m4, key3>, char>::value);
+    CHECK(map_element_index<m4, key1>::value == 1);
+    CHECK(map_element_index<m4, key2>::value == 2);
+    CHECK(map_element_index<m4, key3>::value == 0);
 }
