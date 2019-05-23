@@ -27,6 +27,7 @@ license and that you accept its terms.*/
 #pragma once
 
 #include <array>
+#include <numeric>
 #include <tuple>
 #include "box.hpp"
 #include "doctest.h"
@@ -162,14 +163,13 @@ namespace minimpl {
     struct list_reduce_to_value {
         static_assert(is_list<L>::value, "L is not a list");
 
-        static constexpr T helper(std::tuple<>) { return Zero; }
-
-        template <class First, class... Rest>
-        static constexpr T helper(std::tuple<box<First>, Rest...>) {
-            return Combinator()(F<First>::value, helper(std::tuple<Rest...>()));
+        static constexpr T reduce(const std::array<T, L::size>& a) {
+            T result = Zero;
+            for (size_t i = 0; i < L::size; i++) { result = Combinator()(result, a[i]); }
+            return result;
         }
 
-        static constexpr T value = helper(typename L::boxes());
+        static constexpr T value = reduce(list_map_to_value<L, F, T>::value);
     };
 
     template <class L, template <class> class F, class Combinator, class T, T Zero>
