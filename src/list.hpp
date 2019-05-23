@@ -26,6 +26,7 @@ license and that you accept its terms.*/
 
 #pragma once
 
+#include <array>
 #include <tuple>
 #include "box.hpp"
 #include "doctest.h"
@@ -141,6 +142,22 @@ namespace minimpl {
     using list_push_front_t = unbox_t<list_push_front<L, ToAdd>>;
 
     //==============================================================================================
+    template <class L, template <class> class F, class T>
+    struct list_map_to_value {
+        static_assert(is_list<L>::value, "L is not a list");
+
+        template <class... Elements>
+        static constexpr auto make(std::tuple<Elements...>) {
+            return std::array<T, L::size>{{F<unbox_t<Elements>>::value...}};
+        }
+
+        static constexpr std::array<T, L::size> value = make(typename L::boxes());
+    };
+
+    template <class L, template <class> class F, class T>
+    constexpr std::array<T, L::size> list_map_to_value<L, F, T>::value;
+
+    //==============================================================================================
     template <class L, template <class> class F, class Combinator, class T, T Zero>
     struct list_reduce_to_value {
         static_assert(is_list<L>::value, "L is not a list");
@@ -198,6 +215,9 @@ TEST_CASE("List tests") {
     CHECK(!list_contains<l, std::string>::value);
 
     using l3 = list<int, list<>, double>;
+    CHECK(list_map_to_value<l3, is_list, bool>::value[0] == false);
+    CHECK(list_map_to_value<l3, is_list, bool>::value[1] == true);
+    CHECK(list_map_to_value<l3, is_list, bool>::value[2] == false);
     CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value == true);
     CHECK(list_reduce_to_value<l, is_list, std::logical_or<bool>, bool, false>::value == false);
 
