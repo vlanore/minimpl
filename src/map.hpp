@@ -96,25 +96,25 @@ namespace minimpl {
 
     //==============================================================================================
     template <class T>
-    struct map_value_tuple : Box {
+    struct map_value_list : Box {
         static_assert(is_map<T>::value, "T is not a map");
 
-        using type = typename list_map_t<T, second_t>::tuple;
+        using type = list_map_t<T, second_t>;
     };
 
     template <class T>
-    using map_value_tuple_t = unbox_t<map_value_tuple<T>>;
+    using map_value_list_t = unbox_t<map_value_list<T>>;
 
     //==============================================================================================
     template <class T>
-    struct map_key_tuple : Box {
+    struct map_key_list : Box {
         static_assert(is_map<T>::value, "T is not a map");
 
-        using type = typename list_map_t<T, first_t>::tuple;
+        using type = list_map_t<T, first_t>;
     };
 
     template <class T>
-    using map_key_tuple_t = unbox_t<map_key_tuple<T>>;
+    using map_key_list_t = unbox_t<map_key_list<T>>;
 
 };  // namespace minimpl
 
@@ -136,8 +136,8 @@ TEST_CASE("map tests") {
     CHECK(std::is_same<map_element_t<m, key1>, int>::value);
     CHECK(std::is_same<map_element_t<m, key2>, double>::value);
     CHECK(std::is_same<map_element_t<m, key3>, char>::value);
-    CHECK(std::is_same<map_value_tuple_t<m>, std::tuple<int, double, char>>::value);
-    CHECK(std::is_same<map_key_tuple_t<m>, std::tuple<key1, key2, key3>>::value);
+    CHECK(std::is_same<map_value_list_t<m>, list<int, double, char>>::value);
+    CHECK(std::is_same<map_key_list_t<m>, list<key1, key2, key3>>::value);
     CHECK(map_element_index<m, key1>::value == 0);
     CHECK(map_element_index<m, key2>::value == 1);
     CHECK(map_element_index<m, key3>::value == 2);
