@@ -27,7 +27,6 @@ license and that you accept its terms.*/
 #pragma once
 
 #include "box.hpp"
-#include "doctest.h"
 
 namespace minimpl {
 

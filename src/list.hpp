@@ -30,7 +30,6 @@ license and that you accept its terms.*/
 #include <numeric>
 #include <tuple>
 #include "box.hpp"
-#include "doctest.h"
 
 namespace minimpl {
     // list metatype
