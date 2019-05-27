@@ -27,7 +27,98 @@ license and that you accept its terms.*/
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest.h"
 
-#include "box.hpp"
-#include "list.hpp"
 #include "map.hpp"
-#include "pair.hpp"
+
+TEST_CASE("Box tests") {
+    using namespace minimpl;
+
+    using t = box<double>;
+    struct t2 {};  // NOT a box
+    CHECK(std::is_same<unbox_t<t>, double>::value);
+    // CHECK(std::is_same<unbox_t<t2>, NotABox>::value);
+    CHECK(is_box<t>::value);
+    CHECK(not is_box<t2>::value);
+}
+
+TEST_CASE("Pair test") {
+    using namespace minimpl;
+
+    using p = pair<int, double>;
+    struct p2 {};  // not a pair
+
+    CHECK(std::is_same<first_t<p>, int>::value);
+    CHECK(std::is_same<second_t<p>, double>::value);
+    // CHECK(std::is_same<second_t<p2>, double>::value); // fails (as it should)
+    CHECK(is_pair<p>::value);
+    CHECK(not is_pair<p2>::value);
+}
+
+TEST_CASE("List tests") {
+    using namespace minimpl;
+    using l = list<int, double, char>;
+    struct l2 {};  // not a list
+    CHECK(l::size == 3);
+    CHECK(std::is_same<list_element_t<l, 0>, int>::value);
+    CHECK(std::is_same<list_element_t<l, 1>, double>::value);
+    CHECK(std::is_same<list_element_t<l, 2>, char>::value);
+
+    CHECK(list_find<l, int>::value == 0);
+    CHECK(list_find<l, double>::value == 1);
+    CHECK(list_find<l, char>::value == 2);
+    CHECK(list_contains<l, int>::value);
+    CHECK(list_contains<l, char>::value);
+    CHECK(!list_contains<l, long>::value);
+    CHECK(!list_contains<l, std::string>::value);
+
+    using l3 = list<int, list<>, double>;
+    CHECK(list_map_to_value<l3, is_list, bool>::value[0] == false);
+    CHECK(list_map_to_value<l3, is_list, bool>::value[1] == true);
+    CHECK(list_map_to_value<l3, is_list, bool>::value[2] == false);
+    CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value == true);
+    CHECK(list_reduce_to_value<l, is_list, std::logical_or<bool>, bool, false>::value == false);
+
+    using l4 = list_push_front_t<l, long>;
+    CHECK(list_find<l4, long>::value == 0);
+    CHECK(list_find<l4, int>::value == 1);
+
+    using l5 = list<box<int>, box<char>>;
+    CHECK(std::is_same<list_map_t<l5, unbox_t>, list<int, char>>::value);
+}
+
+//==================================================================================================
+TEST_CASE("map tests") {
+    struct key1 {};
+    struct key2 {};
+    struct key3 {};
+    struct key4 {};
+    using namespace minimpl;
+    using m = map<pair<key1, int>, pair<key2, double>, pair<key3, char>>;
+    struct m2 {};
+    // using m3 = map<double, int>; // fails (as expected)
+    // CHECK(m3::size == 2);
+    CHECK(m::size == 3);
+    CHECK(is_map<m>::value);
+    CHECK(not is_map<m2>::value);
+    CHECK(is_list<m>::value);
+    CHECK(std::is_same<map_element_t<m, key1>, int>::value);
+    CHECK(std::is_same<map_element_t<m, key2>, double>::value);
+    CHECK(std::is_same<map_element_t<m, key3>, char>::value);
+    CHECK(std::is_same<map_value_list_t<m>, list<int, double, char>>::value);
+    CHECK(std::is_same<map_key_list_t<m>, list<key1, key2, key3>>::value);
+    CHECK(map_element_index<m, key1>::value == 0);
+    CHECK(map_element_index<m, key2>::value == 1);
+    CHECK(map_element_index<m, key3>::value == 2);
+    // CHECK(std::is_same<map_element_t<m, key4>, NotFound>::value); // fails (as expected)
+
+    using l = list<pair<key1, int>, pair<key2, double>>;
+    using m3 = list_to_map_t<l>;
+    CHECK(!is_map<l>::value);
+    CHECK(is_map<m3>::value);
+    CHECK(std::is_same<map_element_t<m3, key2>, double>::value);
+    using m4 = map_push_front_t<m3, key3, char>;
+    CHECK(std::is_same<map_element_t<m4, key2>, double>::value);
+    CHECK(std::is_same<map_element_t<m4, key3>, char>::value);
+    CHECK(map_element_index<m4, key1>::value == 1);
+    CHECK(map_element_index<m4, key2>::value == 2);
+    CHECK(map_element_index<m4, key3>::value == 0);
+}

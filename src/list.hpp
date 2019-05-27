@@ -195,36 +195,3 @@ namespace minimpl {
     using list_map_t = unbox_t<list_map<L, F>>;
 
 };  // namespace minimpl
-
-//==================================================================================================
-TEST_CASE("List tests") {
-    using namespace minimpl;
-    using l = list<int, double, char>;
-    struct l2 {};  // not a list
-    CHECK(l::size == 3);
-    CHECK(std::is_same<list_element_t<l, 0>, int>::value);
-    CHECK(std::is_same<list_element_t<l, 1>, double>::value);
-    CHECK(std::is_same<list_element_t<l, 2>, char>::value);
-
-    CHECK(list_find<l, int>::value == 0);
-    CHECK(list_find<l, double>::value == 1);
-    CHECK(list_find<l, char>::value == 2);
-    CHECK(list_contains<l, int>::value);
-    CHECK(list_contains<l, char>::value);
-    CHECK(!list_contains<l, long>::value);
-    CHECK(!list_contains<l, std::string>::value);
-
-    using l3 = list<int, list<>, double>;
-    CHECK(list_map_to_value<l3, is_list, bool>::value[0] == false);
-    CHECK(list_map_to_value<l3, is_list, bool>::value[1] == true);
-    CHECK(list_map_to_value<l3, is_list, bool>::value[2] == false);
-    CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value == true);
-    CHECK(list_reduce_to_value<l, is_list, std::logical_or<bool>, bool, false>::value == false);
-
-    using l4 = list_push_front_t<l, long>;
-    CHECK(list_find<l4, long>::value == 0);
-    CHECK(list_find<l4, int>::value == 1);
-
-    using l5 = list<box<int>, box<char>>;
-    CHECK(std::is_same<list_map_t<l5, unbox_t>, list<int, char>>::value);
-}

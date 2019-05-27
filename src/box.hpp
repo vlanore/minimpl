@@ -54,15 +54,3 @@ namespace minimpl {
     using unbox_t = typename unbox<T>::type;
 
 };  // namespace minimpl
-
-//==================================================================================================
-TEST_CASE("Box tests") {
-    using namespace minimpl;
-
-    using t = box<double>;
-    struct t2 {};  // NOT a box
-    CHECK(std::is_same<unbox_t<t>, double>::value);
-    // CHECK(std::is_same<unbox_t<t2>, NotABox>::value);
-    CHECK(is_box<t>::value);
-    CHECK(not is_box<t2>::value);
-}

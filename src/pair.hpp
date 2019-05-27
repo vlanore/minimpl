@@ -65,17 +65,3 @@ namespace minimpl {
     using second_t = unbox_t<second<T>>;
 
 };  // namespace minimpl
-
-//==================================================================================================
-TEST_CASE("Pair test") {
-    using namespace minimpl;
-
-    using p = pair<int, double>;
-    struct p2 {};  // not a pair
-
-    CHECK(std::is_same<first_t<p>, int>::value);
-    CHECK(std::is_same<second_t<p>, double>::value);
-    // CHECK(std::is_same<second_t<p2>, double>::value); // fails (as it should)
-    CHECK(is_pair<p>::value);
-    CHECK(not is_pair<p2>::value);
-}
