@@ -44,6 +44,13 @@ template <size_t i>
 using index_constant = std::integral_constant<size_t, i>;
 
 //==================================================================================================
+template <class T>
+struct is_list : std::false_type {};
+
+template <class... Ts>
+struct is_list<type_list<Ts...>> : std::true_type {};
+
+//==================================================================================================
 template <class ToFind, class T>
 struct list_contains;
 
@@ -70,6 +77,42 @@ struct list_find<ToFind, type_list<ToFind, Rest...>, i> : index_constant<i> {};
 template <class ToFind, class First, class... Rest, size_t i>
 struct list_find<ToFind, type_list<First, Rest...>, i>
     : list_find<ToFind, type_list<Rest...>, i + 1> {};
+
+//==================================================================================================
+template <class ToAdd, class T>
+struct list_push_front;
+
+template <class ToAdd, class T>
+using list_push_front_t = is_type_t<list_push_front<ToAdd, T>>;
+
+template <class ToAdd, class... Ts>
+struct list_push_front<ToAdd, type_list<Ts...>> : is_type<type_list<ToAdd, Ts...>> {};
+
+//==================================================================================================
+template <template <class> class F, class T>
+struct list_map;
+
+template <template <class> class F, class T>
+using list_map_t = is_type_t<list_map<F, T>>;
+
+template <template <class> class F>
+struct list_map<F, type_list<>> : is_type<type_list<>> {};
+
+template <template <class> class F, class First, class... Rest>
+struct list_map<F, type_list<First, Rest...>>
+    : list_push_front<F<First>, list_map_t<F, type_list<Rest...>>> {};
+
+//==================================================================================================
+template <template <class> class F, class ValueT, class List>
+struct list_map_to_value;
+
+template <template <class> class F, class ValueT, class... Ts>
+struct list_map_to_value<F, ValueT, type_list<Ts...>> {
+    static constexpr std::array<ValueT, sizeof...(Ts)> value = {{F<Ts>::value...}};
+};
+
+template <template <class> class F, class ValueT, class... Ts>
+constexpr std::array<ValueT, sizeof...(Ts)> list_map_to_value<F, ValueT, type_list<Ts...>>::value;
 
 // #include <array>
 // #include <numeric>

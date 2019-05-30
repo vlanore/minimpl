@@ -64,21 +64,21 @@ TEST_CASE("List tests") {
     CHECK(!list_contains<long, l>::value);
     CHECK(!list_contains<std::string, l>::value);
 
-    //     using l3 = list<int, list<>, double>;
-    //     CHECK(list_map_to_value<l3, is_list, bool>::value[0] == false);
-    //     CHECK(list_map_to_value<l3, is_list, bool>::value[1] == true);
-    //     CHECK(list_map_to_value<l3, is_list, bool>::value[2] == false);
+    using l3 = type_list<int, type_list<>, double>;
+    CHECK(list_map_to_value<is_list, bool, l3>::value[0] == false);
+    CHECK(list_map_to_value<is_list, bool, l3>::value[1] == true);
+    CHECK(list_map_to_value<is_list, bool, l3>::value[2] == false);
     //     CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value ==
     //     true);
     //     CHECK(list_reduce_to_value<l, is_list, std::logical_or<bool>, bool, false>::value ==
     //     false);
 
-    //     using l4 = list_push_front_t<l, long>;
-    //     CHECK(list_find<l4, long>::value == 0);
-    //     CHECK(list_find<l4, int>::value == 1);
+    using l4 = list_push_front_t<long, l>;
+    CHECK(list_find<long, l4>::value == 0);
+    CHECK(list_find<int, l4>::value == 1);
 
-    //     using l5 = list<box<int>, box<char>>;
-    //     CHECK(std::is_same<list_map_t<l5, unbox_t>, list<int, char>>::value);
+    using l5 = type_list<is_type<int>, is_type<char>>;
+    CHECK(std::is_same<list_map_t<is_type_t, l5>, type_list<int, char>>::value);
 }
 
 // TEST_CASE("map tests") {
