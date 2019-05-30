@@ -114,170 +114,20 @@ struct list_map_to_value<F, ValueT, type_list<Ts...>> {
 template <template <class> class F, class ValueT, class... Ts>
 constexpr std::array<ValueT, sizeof...(Ts)> list_map_to_value<F, ValueT, type_list<Ts...>>::value;
 
-// #include <array>
-// #include <numeric>
+//==================================================================================================
+template <template <class> class F, class Combinator, class T, T Zero, class L>
+struct list_reduce_to_value;
 
-// namespace minimpl {
-//     // list metatype
-//     // to be used as a tag to identify list types
-//     struct List {};
+template <template <class> class F, class Combinator, class T, T Zero, class... Ts>
+struct list_reduce_to_value<F, Combinator, T, Zero, type_list<Ts...>> {
+    static constexpr T reduce(const std::array<T, sizeof...(Ts)>& a) {
+        T result = Zero;
+        for (size_t i = 0; i < sizeof...(Ts); i++) { result = Combinator()(result, a[i]); }
+        return result;
+    }
 
-//     // list type trait
-//     template <class T>
-//     using is_list = std::is_base_of<List, T>;
+    static constexpr T value = reduce(list_map_to_value<F, T, type_list<Ts...>>::value);
+};
 
-//     // list default class ()
-//     template <class... Elements>
-//     struct list : List {
-//         using boxes = std::tuple<box<Elements>...>;  // to be used when instantiation is
-//         needed
-//         using tuple = std::tuple<Elements...>;
-//         static constexpr size_t size = sizeof...(Elements);
-//     };
-
-//     template <class... Elements>
-//     constexpr size_t list<Elements...>::size;  // needed for linking
-
-//     //==============================================================================================
-//     // get element at index index, fails if L is not a list or if out of bounds
-//     template <class L, size_t index>
-//     struct list_element : Box {
-//         static_assert(is_list<L>::value, "L is not a list");
-//         static_assert(index < L::size, "index out of bounds");
-//         using type = unbox_t<std::tuple_element_t<index, typename L::boxes>>;
-//     };
-
-//     template <class T, size_t index>
-//     using list_element_t = unbox_t<list_element<T, index>>;
-
-//     //==============================================================================================
-//     template <class L, template <class> class Condition>
-//     struct list_find_if_nocheck {
-//         static_assert(is_list<L>::value, "parameter L is not a list");
-
-//         template <size_t index>
-//         static constexpr size_t helper(std::tuple<>) {
-//             return index;  // return list size if not found
-//         }
-
-//         template <size_t index, class First, class... Rest>
-//         static constexpr size_t helper(std::tuple<First, Rest...>) {
-//             constexpr bool condition_ok = Condition<unbox_t<First>>::value;
-//             auto recursive_call = helper<index + 1>(std::tuple<Rest...>());
-//             return condition_ok ? index : recursive_call;
-//         }
-
-//         static constexpr size_t value = helper<0>(typename L::boxes());
-//     };
-
-//     template <class L, template <class> class Condition>
-//     constexpr size_t list_find_if_nocheck<L, Condition>::value;
-
-//     //==============================================================================================
-//     template <class L, template <class> class Condition>
-//     struct list_find_if {
-//         static_assert(is_list<L>::value, "parameter L is not a list");
-//         static constexpr size_t value = list_find_if_nocheck<L, Condition>::value;
-//         static_assert(value < L::size, "type not foud in list");
-//     };
-
-//     template <class L, template <class> class Condition>
-//     constexpr size_t list_find_if<L, Condition>::value;
-
-//     //==============================================================================================
-//     template <class L, class ToFind>
-//     struct list_find {
-//         static_assert(is_list<L>::value, "parameter L is not a list");
-
-//         template <class T>
-//         using is_tofind = std::is_same<T, ToFind>;
-
-//         static constexpr size_t value = list_find_if<L, is_tofind>::value;
-//     };
-
-//     template <class L, class ToFind>
-//     constexpr size_t list_find<L, ToFind>::value;
-
-//     //==============================================================================================
-//     template <class L, class ToFind>
-//     struct list_contains {
-//         static_assert(is_list<L>::value, "parameter L is not a list");
-
-//         template <class T>
-//         using is_tofind = std::is_same<T, ToFind>;
-
-//         static constexpr bool value = list_find_if_nocheck<L, is_tofind>::value < L::size;
-//     };
-
-//     template <class L, class ToFind>
-//     constexpr bool list_contains<L, ToFind>::value;
-
-//     //==============================================================================================
-//     template <class L, class ToAdd>
-//     struct list_push_front : Box {
-//         static_assert(is_list<L>::value, "parameter L is not a list");
-
-//         template <class... Elements>
-//         static auto helper(list<Elements...>) {
-//             return list<ToAdd, Elements...>();
-//         }
-
-//         using type = decltype(helper(L()));
-//     };
-
-//     template <class L, class ToAdd>
-//     using list_push_front_t = unbox_t<list_push_front<L, ToAdd>>;
-
-//     //==============================================================================================
-//     template <class L, template <class> class F, class T>
-//     struct list_map_to_value {
-//         static_assert(is_list<L>::value, "L is not a list");
-
-//         template <class... Elements>
-//         static constexpr auto make(std::tuple<Elements...>) {
-//             return std::array<T, L::size>{{F<unbox_t<Elements>>::value...}};
-//         }
-
-//         static constexpr std::array<T, L::size> value = make(typename L::boxes());
-//     };
-
-//     template <class L, template <class> class F, class T>
-//     constexpr std::array<T, L::size> list_map_to_value<L, F, T>::value;
-
-//     //==============================================================================================
-//     template <class L, template <class> class F, class Combinator, class T, T Zero>
-//     struct list_reduce_to_value {
-//         static_assert(is_list<L>::value, "L is not a list");
-
-//         static constexpr T reduce(const std::array<T, L::size>& a) {
-//             T result = Zero;
-//             for (size_t i = 0; i < L::size; i++) { result = Combinator()(result, a[i]); }
-//             return result;
-//         }
-
-//         static constexpr T value = reduce(list_map_to_value<L, F, T>::value);
-//     };
-
-//     template <class L, template <class> class F, class Combinator, class T, T Zero>
-//     constexpr T list_reduce_to_value<L, F, Combinator, T, Zero>::value;
-
-//     //==============================================================================================
-//     template <class L, template <class> class F>
-//     struct list_map : Box {
-//         static_assert(is_list<L>::value, "L is not a list");
-
-//         static auto helper(std::tuple<>) { return list<>(); }
-
-//         template <class First, class... Rest>
-//         static auto helper(std::tuple<First, Rest...>) {
-//             using recursive_call = decltype(helper(std::tuple<Rest...>()));
-//             return list_push_front_t<recursive_call, F<unbox_t<First>>>();
-//         }
-
-//         using type = decltype(helper(typename L::boxes()));
-//     };
-
-//     template <class L, template <class> class F>
-//     using list_map_t = unbox_t<list_map<L, F>>;
-
-// };  // namespace minimpl
+template <template <class> class F, class Combinator, class T, T Zero, class... Ts>
+constexpr T list_reduce_to_value<F, Combinator, T, Zero, type_list<Ts...>>::value;

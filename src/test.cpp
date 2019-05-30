@@ -43,7 +43,7 @@ TEST_CASE("Pair test") {
 
     CHECK(std::is_same<first_t<p>, int>::value);
     CHECK(std::is_same<second_t<p>, double>::value);
-    // CHECK(std::is_same<second_t<p2>, double>::value); // fails (as it should)
+    // CHECK(std::is_same<second_t<p2>, double>::value);  // fails (as it should)
     CHECK(is_pair<p>::value);
     CHECK(not is_pair<p2>::value);
 }
@@ -51,6 +51,9 @@ TEST_CASE("Pair test") {
 TEST_CASE("List tests") {
     using l = type_list<int, double, char>;
     struct l2 {};  // not a list
+    CHECK(is_list<l>::value);
+    CHECK(not is_list<l2>::value);
+
     CHECK(list_size<l>::value == 3);
     CHECK(std::is_same<list_element_t<0, l>, int>::value);
     CHECK(std::is_same<list_element_t<1, l>, double>::value);
@@ -68,10 +71,8 @@ TEST_CASE("List tests") {
     CHECK(list_map_to_value<is_list, bool, l3>::value[0] == false);
     CHECK(list_map_to_value<is_list, bool, l3>::value[1] == true);
     CHECK(list_map_to_value<is_list, bool, l3>::value[2] == false);
-    //     CHECK(list_reduce_to_value<l3, is_list, std::logical_or<bool>, bool, false>::value ==
-    //     true);
-    //     CHECK(list_reduce_to_value<l, is_list, std::logical_or<bool>, bool, false>::value ==
-    //     false);
+    CHECK(list_reduce_to_value<is_list, std::logical_or<bool>, bool, false, l3>::value == true);
+    CHECK(list_reduce_to_value<is_list, std::logical_or<bool>, bool, false, l>::value == false);
 
     using l4 = list_push_front_t<long, l>;
     CHECK(list_find<long, l4>::value == 0);
