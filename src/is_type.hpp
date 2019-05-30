@@ -26,30 +26,10 @@ license and that you accept its terms.*/
 
 #pragma once
 
-#include <type_traits>
+template <class T>
+struct is_type {
+    using type = T;
+};
 
-namespace minimpl {
-
-    struct Box {};  // type tag for is_box trait
-
-    // "box" struct used to pass type info around without needing to instantiate objects
-    template <class T>
-    struct box : Box {
-        using type = T;
-    };
-
-    // is_box type trait
-    template <class T>
-    using is_box = std::is_base_of<Box, T>;
-
-    template <class T>
-    struct unbox : Box {
-        static_assert(is_box<T>::value, "T is not a box");
-        using type = typename T::type;
-    };
-
-    // box_t to get box::type without writing "typename box::type"
-    template <class T>
-    using unbox_t = typename unbox<T>::type;
-
-};  // namespace minimpl
+template <class T>
+using is_type_t = typename T::type;

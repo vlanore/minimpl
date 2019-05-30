@@ -26,41 +26,22 @@ license and that you accept its terms.*/
 
 #pragma once
 
-#include "box.hpp"
+#include <type_traits>
 
-namespace minimpl {
+template <class T, class U>
+struct type_pair {
+    using first = T;
+    using second = U;
+};
 
-    struct Pair {};  // object is a pair
+template <class T>
+struct is_pair : std::false_type {};
 
-    // a pair of types
-    template <class First, class Second>
-    struct pair : Pair {
-        using first = First;
-        using second = Second;
-    };
+template <class T, class U>
+struct is_pair<type_pair<T, U>> : std::true_type {};
 
-    // type trait for "T is a pair"
-    template <class T>
-    using is_pair = std::is_base_of<Pair, T>;
+template <class T>
+using first_t = typename T::first;
 
-    template <class T>
-    struct first : Box {
-        static_assert(is_pair<T>::value, "T is not a pair");
-        using type = typename T::first;
-    };
-
-    template <class T>
-    struct second : Box {
-        static_assert(is_pair<T>::value, "T is not a pair");
-        using type = typename T::second;
-    };
-
-    // get first pair element without "typename *::type"
-    template <class T>
-    using first_t = unbox_t<first<T>>;
-
-    // get second pair element without "typename *::type"
-    template <class T>
-    using second_t = unbox_t<second<T>>;
-
-};  // namespace minimpl
+template <class T>
+using second_t = typename T::second;
