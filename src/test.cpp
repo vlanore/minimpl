@@ -28,8 +28,9 @@ license and that you accept its terms.*/
 #include "doctest.h"
 
 #include "is_type.hpp"
-#include "pair.hpp"
 #include "type_list.hpp"
+#include "type_map.hpp"
+#include "type_pair.hpp"
 
 TEST_CASE("is_type tests") {
     using T = is_type<double>;
@@ -82,39 +83,32 @@ TEST_CASE("List tests") {
     CHECK(std::is_same<list_map_t<is_type_t, l5>, type_list<int, char>>::value);
 }
 
-// TEST_CASE("map tests") {
-//     struct key1 {};
-//     struct key2 {};
-//     struct key3 {};
-//     struct key4 {};
-//     using namespace minimpl;
-//     using m = map<pair<key1, int>, pair<key2, double>, pair<key3, char>>;
-//     struct m2 {};
-//     // using m3 = map<double, int>; // fails (as expected)
-//     // CHECK(m3::size == 2);
-//     CHECK(m::size == 3);
-//     CHECK(is_map<m>::value);
-//     CHECK(not is_map<m2>::value);
-//     CHECK(is_list<m>::value);
-//     CHECK(std::is_same<map_element_t<m, key1>, int>::value);
-//     CHECK(std::is_same<map_element_t<m, key2>, double>::value);
-//     CHECK(std::is_same<map_element_t<m, key3>, char>::value);
-//     CHECK(std::is_same<map_value_list_t<m>, list<int, double, char>>::value);
-//     CHECK(std::is_same<map_key_list_t<m>, list<key1, key2, key3>>::value);
-//     CHECK(map_element_index<m, key1>::value == 0);
-//     CHECK(map_element_index<m, key2>::value == 1);
-//     CHECK(map_element_index<m, key3>::value == 2);
-//     // CHECK(std::is_same<map_element_t<m, key4>, NotFound>::value); // fails (as expected)
+TEST_CASE("map tests") {
+    struct key1 {};
+    struct key2 {};
+    struct key3 {};
+    struct key4 {};
+    using m = type_map<type_pair<key1, int>, type_pair<key2, double>, type_pair<key3, char>>;
+    struct m2 {};
+    using m3 = type_map<type_pair<key1, double>, double, type_pair<char, double>>;
+    CHECK(is_map<m>::value);
+    CHECK(is_list<m>::value);
+    CHECK(not is_map<m2>::value);
+    CHECK(not is_map<m3>::value);
 
-//     using l = list<pair<key1, int>, pair<key2, double>>;
-//     using m3 = list_to_map_t<l>;
-//     CHECK(!is_map<l>::value);
-//     CHECK(is_map<m3>::value);
-//     CHECK(std::is_same<map_element_t<m3, key2>, double>::value);
-//     using m4 = map_push_front_t<m3, key3, char>;
-//     CHECK(std::is_same<map_element_t<m4, key2>, double>::value);
-//     CHECK(std::is_same<map_element_t<m4, key3>, char>::value);
-//     CHECK(map_element_index<m4, key1>::value == 1);
-//     CHECK(map_element_index<m4, key2>::value == 2);
-//     CHECK(map_element_index<m4, key3>::value == 0);
-// }
+    CHECK(std::is_same<map_element_t<key1, m>, int>::value);
+    CHECK(std::is_same<map_element_t<key2, m>, double>::value);
+    CHECK(std::is_same<map_element_t<key3, m>, char>::value);
+    CHECK(std::is_same<map_value_list_t<m>, type_list<int, double, char>>::value);
+    CHECK(std::is_same<map_key_list_t<m>, type_list<key1, key2, key3>>::value);
+    CHECK(map_element_index<key1, m>::value == 0);
+    CHECK(map_element_index<key2, m>::value == 1);
+    CHECK(map_element_index<key3, m>::value == 2);
+
+    using m4 = map_push_front_t<key4, char, m>;
+    CHECK(std::is_same<map_element_t<key2, m4>, double>::value);
+    CHECK(std::is_same<map_element_t<key4, m4>, char>::value);
+    //     CHECK(map_element_index<m4, key1>::value == 1);
+    //     CHECK(map_element_index<m4, key2>::value == 2);
+    //     CHECK(map_element_index<m4, key3>::value == 0);
+}
