@@ -108,7 +108,7 @@ TEST_CASE("map tests") {
     using m4 = map_push_front_t<key4, char, m>;
     CHECK(std::is_same<map_element_t<key2, m4>, double>::value);
     CHECK(std::is_same<map_element_t<key4, m4>, char>::value);
-    //     CHECK(map_element_index<m4, key1>::value == 1);
-    //     CHECK(map_element_index<m4, key2>::value == 2);
-    //     CHECK(map_element_index<m4, key3>::value == 0);
+    CHECK(map_element_index<key1, m4>::value == 1);
+    CHECK(map_element_index<key2, m4>::value == 2);
+    CHECK(map_element_index<key4, m4>::value == 0);
 }
