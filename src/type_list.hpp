@@ -27,6 +27,7 @@ license and that you accept its terms.*/
 #pragma once
 
 #include <tuple>
+#include "is_type.hpp"
 
 template <class... Ts>
 using type_list = std::tuple<Ts...>;
