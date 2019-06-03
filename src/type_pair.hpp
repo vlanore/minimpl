@@ -26,13 +26,11 @@ license and that you accept its terms.*/
 
 #pragma once
 
+#include <tuple>
 #include <type_traits>
 
 template <class T, class U>
-struct type_pair {
-    using first = T;
-    using second = U;
-};
+using type_pair = std::tuple<T, U>;
 
 template <class T>
 struct is_pair : std::false_type {};
@@ -41,7 +39,7 @@ template <class T, class U>
 struct is_pair<type_pair<T, U>> : std::true_type {};
 
 template <class T>
-using first_t = typename T::first;
+using first_t = std::tuple_element_t<0, T>;
 
 template <class T>
-using second_t = typename T::second;
+using second_t = std::tuple_element_t<1, T>;
