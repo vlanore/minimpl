@@ -76,28 +76,14 @@ struct map_element_index<Key, type_map<type_pair<Key, T>, Rest...>, index> : ind
 
 //==================================================================================================
 template <class T>
-struct map_value_list;
+using map_value_list = list_map<second_t, T>;
 
 template <class T>
 using map_value_list_t = is_type_t<map_value_list<T>>;
 
-template <>
-struct map_value_list<type_map<>> : is_type<type_list<>> {};
-
-template <class T, class U, class... Rest>
-struct map_value_list<type_map<type_pair<T, U>, Rest...>>
-    : is_type<list_push_front_t<U, map_value_list_t<type_map<Rest...>>>> {};
-
 //==================================================================================================
 template <class T>
-struct map_key_list;
+using map_key_list = list_map<first_t, T>;
 
 template <class T>
 using map_key_list_t = is_type_t<map_key_list<T>>;
-
-template <>
-struct map_key_list<type_map<>> : is_type<type_list<>> {};
-
-template <class T, class U, class... Rest>
-struct map_key_list<type_map<type_pair<T, U>, Rest...>>
-    : is_type<list_push_front_t<T, map_key_list_t<type_map<Rest...>>>> {};
