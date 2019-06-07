@@ -74,6 +74,8 @@ TEST_CASE("List tests") {
     CHECK(list_map_to_value<is_list, bool, l3>::value[2] == false);
     CHECK(list_reduce_to_value<is_list, std::logical_or<bool>, bool, false, l3>::value == true);
     CHECK(list_reduce_to_value<is_list, std::logical_or<bool>, bool, false, l>::value == false);
+    CHECK(list_or<is_list, l3>::value == true);
+    CHECK(list_or<is_list, l>::value == false);
 
     using l4 = list_push_front_t<long, l>;
     CHECK(list_find<long, l4>::value == 0);

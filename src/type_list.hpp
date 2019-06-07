@@ -132,3 +132,10 @@ struct list_reduce_to_value<F, Combinator, T, Zero, type_list<Ts...>> {
 
 template <template <class> class F, class Combinator, class T, T Zero, class... Ts>
 constexpr T list_reduce_to_value<F, Combinator, T, Zero, type_list<Ts...>>::value;
+
+//==================================================================================================
+template <template <class> class F, class L>
+using list_and = list_reduce_to_value<F, std::logical_and<bool>, bool, true, L>;
+
+template <template <class> class F, class L>
+using list_or = list_reduce_to_value<F, std::logical_or<bool>, bool, false, L>;
